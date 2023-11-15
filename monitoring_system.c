@@ -13,7 +13,6 @@ int main(void)
 	
 	pipe(p);
 	
-	printf("%d %d\n", p[0], p[1]); 
 	pthread_create(&thread_ids[0], NULL, probe, &p[1]);
 	pthread_create(&thread_ids[1], NULL, comm_system, &p[0]);
 	

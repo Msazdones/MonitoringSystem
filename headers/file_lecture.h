@@ -9,6 +9,7 @@
 #include <unistd.h> 
 #include <sys/sysinfo.h>
 #include <time.h>
+#include <math.h>
 
 
 //constantes

@@ -71,14 +71,13 @@ void extractPrData(char strpid[], struct prrsd **prdata, int prcnt, double hertz
 							starttime = atof(data);
 							total_time = utime + stime + cutime + cstime;
 							prseconds = uptime - (starttime / hertz);
-							gcvt(100 * ((total_time / hertz) / prseconds), 10, (*prdata)[prcnt-1].cpu);
+							gcvt(roundf(100 * ((total_time / hertz) / prseconds)), 10, (*prdata)[prcnt-1].cpu);
 							break;
 						default:
 							break;
 
 					}
 					
-					//printf("%s\n", data);
 					if(k == 0)
 					{
 						data = strtok(NULL, ")");
@@ -97,7 +96,7 @@ void extractPrData(char strpid[], struct prrsd **prdata, int prcnt, double hertz
 					switch(k)
 					{
 						case 1:
-							gcvt((float)(atof(data)/totmempages), 10, (*prdata)[prcnt-1].ram);
+							gcvt(roundf((float)(atof(data)/totmempages)), 10, (*prdata)[prcnt-1].ram);
 							break;
 						default:
 							break;
