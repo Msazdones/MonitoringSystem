@@ -1,5 +1,5 @@
-#ifndef MONITORING_SYSTEM
-#define MONITORING_SYSTEM
+#ifndef PROBE_SYSTEM
+#define PROBE_SYSTEM
 
 #include <sys/socket.h>
 #include <arpa/inet.h>

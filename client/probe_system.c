@@ -1,4 +1,4 @@
-#include "headers/monitoring_system.h"
+#include "headers/probe_system.h"
 
 int main()
 {
@@ -10,7 +10,7 @@ int main()
     	
     	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 	if(socket_desc < 0){
-		printf("Unable to create socket\n");
+		printf("Fallo en la creación del socket\n");
 		return -1;
 	}
 	server_addr.sin_family = AF_INET;
@@ -18,10 +18,10 @@ int main()
 	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
 	if(connect(socket_desc, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
-		printf("Unable to connect\n");
+		printf("Fallo en el establecimiento de la comunicación\n");
 		return -1;
 	}
-	printf("Connected with server successfully\n");
+	printf("Conexión con el servidor central realizada con éxito\n");
 	
 	while(1)
 	{
@@ -29,8 +29,8 @@ int main()
 		gathering_data(&sending_data);
 		
 		if(send(socket_desc, sending_data, strlen(sending_data), 0) < 0){
-			printf("Unable to send message\n");
-			return -1;
+			printf("Fallo al enviar los datos\n");
+			//return -1;
 		}
 		sleep(5);	
 	}
