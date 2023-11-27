@@ -2,6 +2,7 @@
 #define PROBE_SYSTEM
 
 #include <sys/socket.h>
+#include <sys/sysinfo.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
@@ -17,7 +18,12 @@
 #define MAX_PROCS_TO_EVAL 1000
 #define BUFFER_SIZE 1000
 
+//mensajes de protocolo de comunicaciones
+#define ACK_MSG "OK"
+
 void gathering_data(char **);
 int isNameNumber(char *);
+int create_connection(int *, struct sockaddr_in *);
+int initial_setup(int *, struct sockaddr_in *);
 
 #endif

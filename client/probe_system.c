@@ -6,22 +6,17 @@ int main()
 	sending_data = (char*)malloc(BUFFER_SIZE * MAX_PROCS_TO_EVAL * sizeof(char));
 
 	int socket_desc;
-    	struct sockaddr_in server_addr;
-    	
-    	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
-	if(socket_desc < 0){
-		printf("Fallo en la creación del socket\n");
+	struct sockaddr_in server_addr;	
+	
+	if(!create_connection(&socket_desc, &server_addr))
+	{
 		return -1;
 	}
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(SERVER_PORT);
-	server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
-	if(connect(socket_desc, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
-		printf("Fallo en el establecimiento de la comunicación\n");
+	if(!initial_setup(&socket_desc, &server_addr))
+	{
 		return -1;
 	}
-	printf("Conexión con el servidor central realizada con éxito\n");
 	
 	while(1)
 	{
@@ -34,6 +29,57 @@ int main()
 		}
 		sleep(5);	
 	}
+	return 0;
+}
+
+int initial_setup(int *socket_desc, struct sockaddr_in *server_addr)
+{
+	char data[100], aux[20];
+
+	int hertz = sysconf(_SC_CLK_TCK);
+	int totmempages = get_phys_pages();
+
+	data[0] = '(';
+	itoa(hertz, aux, 20);
+	strncat(data, aux, strlen(aux));
+	strncat(data, ",", 1);
+	itoa(totmempages, aux, 20);
+	strncat(data, aux, strlen(aux));
+	strncat(data, ")", 1);
+
+	if(send(socket_desc, data, strlen(data), 0) < 0){
+		printf("Fallo al enviar los datos\n");
+		return 0;
+	}
+	memset(data,0,strlen(data));
+	read(socket_desc, data, strlen(data)-1); 
+
+	if(strcmp(data, ACK_MSG)) //si no son iguales, return error
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+int create_connection(int *socket_desc, struct sockaddr_in *server_addr)
+{
+	*socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+	
+	if(socket_desc < 0){
+		printf("Fallo en la creación del socket\n");
+		return 0;
+	}
+	(*server_addr).sin_family = AF_INET;
+	(*server_addr).sin_port = htons(SERVER_PORT);
+	(*server_addr).sin_addr.s_addr = inet_addr(SERVER_IP);
+
+	if(connect(*socket_desc, (struct sockaddr*)&(*server_addr), sizeof((*server_addr))) < 0){
+		printf("Fallo en el establecimiento de la comunicación\n");
+		return 0;
+	}
+	printf("Conexión con el servidor central realizada con éxito\n");
+
 	return 0;
 }
 
@@ -71,9 +117,6 @@ void gathering_data(char **data)
 					fp = fopen(file_route, "r");
 					fread(file_buffer, BUFFER_SIZE, 1, fp);
 					fclose(fp);
-					
-					//printf("%s: %d, %d\n", file_route, prcnt, strlen(file_buffer));
-					//printf("%s\n", file_buffer);
 					
 					strcat((*data), file_buffer);
 					strcat((*data), "\n||\n");

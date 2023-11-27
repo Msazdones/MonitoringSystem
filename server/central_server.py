@@ -13,7 +13,7 @@ def main():
 		p.start()
 	for p in prs:
 		p.join()
-	print("aaaa")
+	print("FIN")
 
 if __name__ == "__main__":
 	main()

@@ -1,5 +1,13 @@
 import socket
 
+def initial_setup(q):
+	data = conn.recv(1000000000)
+	if not data:
+		print("Something went wrong. Aborting\n")
+		break
+	q.append(data)
+	conn.sendall("OK")
+
 def reception(q):
 	HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 	PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
@@ -7,11 +15,13 @@ def reception(q):
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.bind((HOST, PORT))
 		s.listen()
+		print("Data recption system active. Waiting for the connection.\n")
 		conn, addr = s.accept()
 		with conn:
 			print(f"Connected by {addr}")
+			initial_setup(q)
 			while True:
-				data = conn.recv(1000000)
+				data = conn.recv(1000000000)
 				if not data:
 					break
 				q.append(data.decode("latin-1"))
