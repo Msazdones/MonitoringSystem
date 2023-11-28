@@ -6,7 +6,7 @@ def initial_setup(q, conn):
 	if not data:
 		print("Something went wrong. Aborting\n")
 	q.append(data.decode(cfg.DECODING))
-	conn.sendall(ACK_MSG)
+	conn.sendall(cfg.ACK_MSG)
 
 def reception(q):
 	with dep.socket.socket(dep.socket.AF_INET, dep.socket.SOCK_STREAM) as s:
@@ -19,7 +19,7 @@ def reception(q):
 			initial_setup(q, conn)
 			while True:
 				data_size = conn.recv(cfg.MAX_BLIND_DATA)
-				conn.sendall(ACK_MSG)
+				conn.sendall(cfg.ACK_MSG)
 
 				data = conn.recv(int(data_size.decode(cfg.DECODING)), dep.socket.MSG_WAITALL)
 				if not data:
