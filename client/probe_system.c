@@ -13,7 +13,7 @@ int main()
 		return -1;
 	}
 
-	if(!initial_setup(&socket_desc, &server_addr))
+	if(!initial_setup(&socket_desc))
 	{
 		return -1;
 	}
@@ -25,34 +25,51 @@ int main()
 		
 		if(send(socket_desc, sending_data, strlen(sending_data), 0) < 0){
 			printf("Fallo al enviar los datos\n");
-			//return -1;
+			return -1;
 		}
+		printf("aaaa\n");
 		sleep(5);	
 	}
 	return 0;
 }
 
-int initial_setup(int *socket_desc, struct sockaddr_in *server_addr)
+int initial_setup(int *socket_desc)
 {
 	char data[100], aux[20];
 
 	int hertz = sysconf(_SC_CLK_TCK);
 	int totmempages = get_phys_pages();
 
-	data[0] = '(';
-	itoa(hertz, aux, 20);
-	strncat(data, aux, strlen(aux));
-	strncat(data, ",", 1);
-	itoa(totmempages, aux, 20);
-	strncat(data, aux, strlen(aux));
-	strncat(data, ")", 1);
+	FILE *fp;
+	fp = fopen(UPFILE, "r");
+	float uptime = 0;
+	fread(aux, strlen(aux), 1, fp);
+	fclose(fp);
 
-	if(send(socket_desc, data, strlen(data), 0) < 0){
+	memset(data,0,strlen(data));
+
+	data[0] = '(';
+	strncat(data, aux, strlen(aux));
+	strncat(data, ",", 2);
+	//itoa(hertz, aux, 20);
+	sprintf(aux, "%d", hertz);
+	strncat(data, aux, strlen(aux));
+	strncat(data, ",", 2);
+	//itoa(totmempages, aux, 20);
+	sprintf(aux, "%d", totmempages);
+	strncat(data, aux, strlen(aux));
+	strncat(data, ")", 2);
+
+	printf("%s\n",data);
+
+	if(send(*socket_desc, data, strlen(data), 0) < 0)
+	{
 		printf("Fallo al enviar los datos\n");
 		return 0;
 	}
 	memset(data,0,strlen(data));
-	read(socket_desc, data, strlen(data)-1); 
+	
+	recv(*socket_desc, data, strlen(data)-1, 0);
 
 	if(strcmp(data, ACK_MSG)) //si no son iguales, return error
 	{
@@ -80,7 +97,7 @@ int create_connection(int *socket_desc, struct sockaddr_in *server_addr)
 	}
 	printf("Conexión con el servidor central realizada con éxito\n");
 
-	return 0;
+	return 1;
 }
 
 void gathering_data(char **data)
@@ -118,9 +135,11 @@ void gathering_data(char **data)
 					fread(file_buffer, BUFFER_SIZE, 1, fp);
 					fclose(fp);
 					
+					strcat((*data), "\n");
+					strcat((*data), DATAFILES[i]);
+					strcat((*data), "|\n");
 					strcat((*data), file_buffer);
-					strcat((*data), "\n||\n");
-					
+					strcat((*data), "||");
 				}
 				
 			}

@@ -1,12 +1,11 @@
 import socket
 
-def initial_setup(q):
+def initial_setup(q, conn):
 	data = conn.recv(1000000000)
 	if not data:
 		print("Something went wrong. Aborting\n")
-		break
-	q.append(data)
-	conn.sendall("OK")
+	q.append(data.decode("latin-1"))
+	conn.sendall(b"OK")
 
 def reception(q):
 	HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
@@ -19,7 +18,7 @@ def reception(q):
 		conn, addr = s.accept()
 		with conn:
 			print(f"Connected by {addr}")
-			initial_setup(q)
+			initial_setup(q, conn)
 			while True:
 				data = conn.recv(1000000000)
 				if not data:

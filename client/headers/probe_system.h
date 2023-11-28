@@ -14,6 +14,7 @@
 #define SERVER_PORT 65432
 #define SERVER_IP "127.0.0.1"
 #define PROC_DIR "/proc/"
+#define UPFILE "/proc/uptime"
 #define FILES_TO_EVAL 3
 #define MAX_PROCS_TO_EVAL 1000
 #define BUFFER_SIZE 1000
@@ -24,6 +25,6 @@
 void gathering_data(char **);
 int isNameNumber(char *);
 int create_connection(int *, struct sockaddr_in *);
-int initial_setup(int *, struct sockaddr_in *);
+int initial_setup(int *);
 
 #endif
