@@ -20,7 +20,10 @@ def reception(q):
 			print(f"Connected by {addr}")
 			initial_setup(q, conn)
 			while True:
-				data = conn.recv(1000000000)
+				data_size = conn.recv(1000000000)
+				conn.sendall(b"OK")
+
+				data = conn.recv(int(data_size.decode("latin-1")), socket.MSG_WAITALL)
 				if not data:
 					break
 				q.append(data.decode("latin-1"))

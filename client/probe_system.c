@@ -2,7 +2,10 @@
 
 int main()
 {
+	int sending_data_len = 0;
 	char *sending_data;
+	char command[20];
+
 	sending_data = (char*)malloc(BUFFER_SIZE * MAX_PROCS_TO_EVAL * sizeof(char));
 
 	int socket_desc;
@@ -20,10 +23,26 @@ int main()
 	
 	while(1)
 	{
-		memset(sending_data,0,strlen(sending_data));
+		memset(sending_data, 0, strlen(sending_data));
+		memset(command, 0, strlen(command));
+
 		gathering_data(&sending_data);
-		
-		if(send(socket_desc, sending_data, strlen(sending_data), 0) < 0){
+
+		sending_data_len = strlen(sending_data);
+		sprintf(command, "%d", sending_data_len);
+		send(socket_desc, &command, strlen(command), 0);
+		memset(command, 0, strlen(command));
+
+		recv(socket_desc, command, strlen(command)-1, 0);
+
+		if(strcmp(command, ACK_MSG))
+		{
+			printf("Fallo en la recepción. Abortando.\n");
+			return -1;
+		}
+
+		if(send(socket_desc, sending_data, strlen(sending_data), 0) < 0)
+		{
 			printf("Fallo al enviar los datos\n");
 			return -1;
 		}
@@ -51,11 +70,9 @@ int initial_setup(int *socket_desc)
 	data[0] = '(';
 	strncat(data, aux, strlen(aux));
 	strncat(data, ",", 2);
-	//itoa(hertz, aux, 20);
 	sprintf(aux, "%d", hertz);
 	strncat(data, aux, strlen(aux));
 	strncat(data, ",", 2);
-	//itoa(totmempages, aux, 20);
 	sprintf(aux, "%d", totmempages);
 	strncat(data, aux, strlen(aux));
 	strncat(data, ")", 2);
@@ -134,14 +151,10 @@ void gathering_data(char **data)
 					fp = fopen(file_route, "r");
 					fread(file_buffer, BUFFER_SIZE, 1, fp);
 					fclose(fp);
-					
-					strcat((*data), "\n");
-					strcat((*data), DATAFILES[i]);
-					strcat((*data), "|\n");
+
 					strcat((*data), file_buffer);
-					strcat((*data), "||");
-				}
-				
+					strcat((*data), "||\n");
+				}	
 			}
 			if(prcnt >= MAX_PROCS_TO_EVAL)
 			{

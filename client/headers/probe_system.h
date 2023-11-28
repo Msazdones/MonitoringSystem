@@ -18,7 +18,6 @@
 #define FILES_TO_EVAL 3
 #define MAX_PROCS_TO_EVAL 1000
 #define BUFFER_SIZE 1000
-
 //mensajes de protocolo de comunicaciones
 #define ACK_MSG "OK"
 
