@@ -1,7 +1,12 @@
 #include "headers/probe_system.h"
 
+#include <time.h>
+
 int main()
 {
+	clock_t t;
+	t = clock();
+
 	int sending_data_len = 0;
 	char *sending_data;
 	char command[20];
@@ -21,8 +26,13 @@ int main()
 		return -1;
 	}
 	
+	t = clock() - t;
+	double time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
+	printf("Tiempo de setup: %f\n", time_taken);
+
 	while(1)
 	{
+		t = clock();
 		memset(sending_data, 0, strlen(sending_data));
 		memset(command, 0, strlen(command));
 
@@ -46,7 +56,11 @@ int main()
 			printf("Fallo al enviar los datos\n");
 			return -1;
 		}
-		printf("aaaa\n");
+
+		t = clock() - t;
+		time_taken = ((double)t)/CLOCKS_PER_SEC; // calculate the elapsed time
+		
+		printf("Tiempo de ejecucion: %f\n", time_taken);
 		sleep(5);	
 	}
 	return 0;
@@ -58,16 +72,13 @@ int initial_setup(int *socket_desc)
 
 	int hertz = sysconf(_SC_CLK_TCK);
 	int totmempages = get_phys_pages();
-
-	FILE *fp;
-	fp = fopen(UPFILE, "r");
-	float uptime = 0;
-	fread(aux, strlen(aux), 1, fp);
-	fclose(fp);
+	struct sysinfo s_info;
+    sysinfo(&s_info);
 
 	memset(data,0,strlen(data));
 
 	data[0] = '(';
+	sprintf(aux, "%ld", s_info.uptime);
 	strncat(data, aux, strlen(aux));
 	strncat(data, ",", 2);
 	sprintf(aux, "%d", hertz);
