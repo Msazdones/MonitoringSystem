@@ -1,5 +1,5 @@
-#include "headers/probe_body.h"
-#include "headers/server_comm.h"
+#include "../headers/probe_body.h"
+#include "../headers/server_comm.h"
 
 int main()
 {

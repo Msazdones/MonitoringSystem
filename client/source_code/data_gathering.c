@@ -1,4 +1,4 @@
-#include "headers/data_gathering.h"
+#include "../headers/data_gathering.h"
 
 void data_gathering(char **data)
 {

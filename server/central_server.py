@@ -1,4 +1,5 @@
 import dependencies as dep
+import config as cfg
 
 def main():
 	dep.mp.set_start_method('spawn')

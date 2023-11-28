@@ -1,5 +1,5 @@
-#include "headers/probe_body.h"
-#include "headers/data_gathering.h"
+#include "../headers/probe_body.h"
+#include "../headers/data_gathering.h"
 
 int probe_body(int *socket_desc)
 {

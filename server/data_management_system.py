@@ -1,9 +1,8 @@
-import re
-import datetime
-from pymongo import MongoClient
+import dependencies as dep
+import config as cfg
 
 def filter_data(data, sys_params):
-	date = datetime.datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
+	date = dep.datetime.datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
 	d = {}
 	rdata = []
 
@@ -40,9 +39,8 @@ def filter_data(data, sys_params):
 
 #password123
 def connect_to_db():
-	direction = "mongodb://127.0.0.1:27017/"
-	client = MongoClient(direction)
-	return client["test"]["test"]
+	client = dep.MongoClient(cfg.MONGO_DIR)
+	return client[cfg.DB][cfg.COLLECTION]
 
 def initial_setup(q):
 	while True:
@@ -60,5 +58,5 @@ def data_management(q):
 			data = q.pop(0)
 			pr_data = filter_data(data, [uptime, hertz, totmenpages])
 			#col.insert_one(pr_data)
-			#print(pr_data)
+			print(pr_data)
 			
