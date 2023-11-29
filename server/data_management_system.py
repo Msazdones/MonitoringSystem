@@ -1,8 +1,7 @@
-import dependencies as dep
 import config as cfg
 
 def filter_data(data, sys_params):
-	date = dep.datetime.datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
+	date = cfg.datetime.datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
 	d = {}
 	rdata = []
 
@@ -38,25 +37,25 @@ def filter_data(data, sys_params):
 	return {date : rdata}
 
 #password123
-def connect_to_db():
-	client = dep.MongoClient(cfg.MONGO_DIR)
-	return client[cfg.DB][cfg.COLLECTION]
+def connect_to_db(msclient):
+	client = cfg.MongoClient(cfg.MONGO_DIR)
+	col = cfg.COLLECTION + msclient.replace(".", "_")
+	print(col)
+	return client[cfg.DB][col]
 
 def initial_setup(q):
 	while True:
 		if(len(q) > 0):
 			data = q.pop(0)
 			data = data[1:len(data)-1].split(",")
-			print(data)
 			return float(data[0]), float(data[1]), float(data[2])
 
-def data_management(q):
-	col = connect_to_db()
+def data_management(q, msclient):
+	col = connect_to_db(msclient)
 	uptime, hertz, totmenpages = initial_setup(q)
 	while True:
 		if(len(q) > 0):
 			data = q.pop(0)
 			pr_data = filter_data(data, [uptime, hertz, totmenpages])
-			#col.insert_one(pr_data)
-			print(pr_data)
+			col.insert_one(pr_data)
 			
