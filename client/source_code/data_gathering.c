@@ -30,8 +30,12 @@ void data_gathering(char **data)
 					strcat(file_route, en->d_name);
 					strcat(file_route, "/");
 					strcat(file_route, DATAFILES[i]);
-					
-					fp = fopen(file_route, "r");
+
+					fp = fopen(file_route, "r");	
+					if(fp == NULL)
+					{
+						break;
+					}
 					fread(file_buffer, BUFFER_SIZE, 1, fp);
 					fclose(fp);
 

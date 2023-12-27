@@ -40,7 +40,6 @@ def filter_data(data, sys_params):
 def connect_to_db(msclient):
 	client = cfg.MongoClient(cfg.MONGO_DIR)
 	col = cfg.COLLECTION + msclient.replace(".", "_")
-	print(col)
 	return client[cfg.DB][col]
 
 def initial_setup(q):
@@ -58,4 +57,3 @@ def data_management(q, msclient):
 			data = q.pop(0)
 			pr_data = filter_data(data, [uptime, hertz, totmenpages])
 			col.insert_one(pr_data)
-			

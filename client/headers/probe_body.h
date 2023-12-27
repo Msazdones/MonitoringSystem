@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/sysinfo.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <ctype.h>
 #include <unistd.h> 
 
@@ -15,7 +17,7 @@
 //mensajes de protocolo de comunicaciones
 #define ACK_MSG "OK"
 
-int initial_setup(int *);
-int probe_body(int *);
+int initial_setup(SSL **);
+int probe_body(SSL **);
 
 #endif

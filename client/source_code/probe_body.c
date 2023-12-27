@@ -1,7 +1,7 @@
 #include "../headers/probe_body.h"
 #include "../headers/data_gathering.h"
 
-int probe_body(int *socket_desc)
+int probe_body(SSL **sslsock)
 {
 	int sending_data_len = 0;
 	char *sending_data;
@@ -18,10 +18,12 @@ int probe_body(int *socket_desc)
 
 		sending_data_len = strlen(sending_data);
 		sprintf(command, "%d", sending_data_len);
-		send((*socket_desc), &command, strlen(command), 0);
-		memset(command, 0, strlen(command));
 
-		recv((*socket_desc), command, strlen(command)-1, 0);
+		//printf("Longitud: %s\n", command);
+		SSL_write(*sslsock, command, strlen(command));
+
+		memset(command, 0, strlen(command));
+		SSL_read(*sslsock, command, sizeof(command));
 
 		if(strcmp(command, ACK_MSG))
 		{
@@ -29,17 +31,17 @@ int probe_body(int *socket_desc)
 			return -1;
 		}
 
-		if(send((*socket_desc), sending_data, strlen(sending_data), 0) < 0)
+		if(SSL_write(*sslsock, sending_data, strlen(sending_data)) < 0)
 		{
 			printf("Fallo al enviar los datos\n");
 			return -1;
 		}
-		sleep(5);	
+		sleep(2);	
 	}
 	return 0;
 }
 
-int initial_setup(int *socket_desc)
+int initial_setup(SSL **sslsock)
 {
 	char data[100], aux[20];
 
@@ -62,16 +64,16 @@ int initial_setup(int *socket_desc)
 	strncat(data, ")", 2);
 
 	printf("%s\n",data);
-
-	if(send(*socket_desc, data, strlen(data), 0) < 0)
+	
+	if(SSL_write(*sslsock, data, strlen(data)) < 0)
 	{
 		printf("Fallo al enviar los datos\n");
 		return 0;
 	}
-	memset(data,0,strlen(data));
-	
-	recv(*socket_desc, data, strlen(data)-1, 0);
 
+	memset(data,0,strlen(data));
+	SSL_read(*sslsock, data, sizeof(data));
+	
 	if(strcmp(data, ACK_MSG)) //si no son iguales, return error
 	{
 		return 0;
