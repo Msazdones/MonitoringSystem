@@ -48,7 +48,7 @@ int initial_setup(SSL **sslsock)
 	int hertz = sysconf(_SC_CLK_TCK);
 	int totmempages = get_phys_pages();
 	struct sysinfo s_info;
-    sysinfo(&s_info);
+	sysinfo(&s_info);
 
 	memset(data,0,strlen(data));
 
