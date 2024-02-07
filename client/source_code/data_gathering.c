@@ -13,6 +13,14 @@ void data_gathering(char **data)
 	
 	FILE *fp;	//puntero para lectura de archivos
 	
+	//obtener fecha y hora de la medida
+	char date[30];
+	time_t t = time(NULL);
+	struct tm tstamp = *localtime(&t);
+
+	sprintf(date, "%d-%02d-%02d %02d:%02d:%02d\n", tstamp.tm_year + 1900, tstamp.tm_mon + 1, tstamp.tm_mday, tstamp.tm_hour, tstamp.tm_min, tstamp.tm_sec);
+	strcat((*data), date);
+
 	prcnt = 0;
 	dr = opendir(PROC_DIR);
 	if(dr) 

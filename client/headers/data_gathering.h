@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #define PROC_DIR "/proc/"
 #define MAX_PROCS_TO_EVAL 1000

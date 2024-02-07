@@ -1,32 +1,35 @@
 import config as cfg
 
 def filter_data(data, sys_params):
-	date = cfg.datetime.datetime.now().strftime('%d/%m/%Y-%H:%M:%S')
+	date = data[0:19]
+	data = data[20:len(data)]
 	d = {}
 	rdata = []
-
 	segmented_data = data.split("||\n")
 	for i in range(0, len(segmented_data)-1):
 		fcnt = i % 3
 		if(fcnt == 0):
+			pname = cfg.re.findall("\(.*\)", segmented_data[i])[0]
+			segmented_data[i] = segmented_data[i].replace(pname + " ", "")	
 			segmented_file = segmented_data[i].split(" ")
-			
-			start_time = float(segmented_file[21])
-			total_time = float(segmented_file[13]) + float(segmented_file[14])
+
+			start_time = float(segmented_file[20])
+			total_time = float(segmented_file[12]) + float(segmented_file[13])
 			
 			prseconds = sys_params[0] - (start_time / sys_params[1])
 			result = round(100 * ((total_time / sys_params[1]) / prseconds), 2)
 			
 			d.update({"pid" : segmented_file[0]})
-			d.update({"name" : segmented_file[1]})
+			d.update({"name" : pname})
 			d.update({"status" : segmented_file[2]})
-			d.update({"CPU" : result})
+			d.update({"CPU" : str(result)})
 	
+			print(d)
 		elif(fcnt == 1):
 			segmented_file = segmented_data[i].split(" ")
 			result = round(100 * (int(segmented_file[0]) / sys_params[2]), 2)
 			
-			d.update({"RAM" : result})
+			d.update({"RAM" : str(result)})
 
 		elif(fcnt == 2):
 			segmented_file = segmented_data[i].split("\n")	
@@ -56,4 +59,4 @@ def data_management(q, msclient):
 		if(len(q) > 0):
 			data = q.pop(0)
 			pr_data = filter_data(data, [uptime, hertz, totmenpages])
-			col.insert_one(pr_data)
+			#col.insert_one(pr_data)
