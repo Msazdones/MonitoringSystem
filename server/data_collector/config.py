@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import select
 import ssl
 import re
+from hashlib import sha256
 
 import reception_system as rs
 import data_management_system as dms
@@ -13,6 +14,11 @@ import reception_system as rec
 MAX_BLIND_DATA = 1000000000
 DECODING = "latin-1"
 ACK_MSG = b"OK"
+NACK_MSG = b"NOK"
+PASS_REQ = b"PASS"
+PASS_RES = "AUTH"
+DATA_SIZE = "SIZE"
+
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 MAX_CLIENTS = 5
@@ -20,3 +26,5 @@ MAX_CLIENTS = 5
 MONGO_DIR = "mongodb://127.0.0.1:27017/"
 DB = "test"
 COLLECTION = "Client_"
+
+credsCOLL = "credentials"

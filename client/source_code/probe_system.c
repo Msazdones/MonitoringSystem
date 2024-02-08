@@ -9,16 +9,29 @@ int main()
 
 	if(!create_connection(&socket_desc))
 	{
+		close_connections(&sslsock, &socket_desc);
+		SSL_free(sslsock);
 		return -1;
 	}
 
 	if(!create_secure_connection(&sslsock, &socket_desc))
 	{
+		close_connections(&sslsock, &socket_desc);
+		SSL_free(sslsock);
+		return -1;
+	}
+
+	if(!introduce_creds(&sslsock))
+	{
+		close_connections(&sslsock, &socket_desc);
+		SSL_free(sslsock);
 		return -1;
 	}
 
 	if(!initial_setup(&sslsock))
 	{
+		close_connections(&sslsock, &socket_desc);
+		SSL_free(sslsock);
 		return -1;
 	}
 

@@ -2,7 +2,8 @@ import config as cfg
 
 def filter_data(data, sys_params):
 	date = data[0:19]
-	data = data[20:len(data)]
+	sysuptime = float(data[19:data.index("||\n")])
+	data = data[data.index("||\n")+3:len(data)]
 	d = {}
 	rdata = []
 	segmented_data = data.split("||\n")
@@ -16,18 +17,20 @@ def filter_data(data, sys_params):
 			start_time = float(segmented_file[20])
 			total_time = float(segmented_file[12]) + float(segmented_file[13])
 			
-			prseconds = sys_params[0] - (start_time / sys_params[1])
-			result = round(100 * ((total_time / sys_params[1]) / prseconds), 2)
+			prseconds = sysuptime - (start_time / sysuptime)
+			result = round(100 * ((total_time / sys_params[0]) / prseconds), 2)
 			
 			d.update({"pid" : segmented_file[0]})
 			d.update({"name" : pname})
 			d.update({"status" : segmented_file[2]})
 			d.update({"CPU" : str(result)})
-	
+			d.update({"TOTALTIME" : str(prseconds)})
+
 			print(d)
+
 		elif(fcnt == 1):
 			segmented_file = segmented_data[i].split(" ")
-			result = round(100 * (int(segmented_file[0]) / sys_params[2]), 2)
+			result = round(100 * (int(segmented_file[0]) / sys_params[1]), 2)
 			
 			d.update({"RAM" : str(result)})
 
@@ -58,5 +61,5 @@ def data_management(q, msclient):
 	while True:
 		if(len(q) > 0):
 			data = q.pop(0)
-			pr_data = filter_data(data, [uptime, hertz, totmenpages])
+			pr_data = filter_data(data, [hertz, totmenpages])
 			#col.insert_one(pr_data)

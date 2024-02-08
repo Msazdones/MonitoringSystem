@@ -14,12 +14,21 @@ void data_gathering(char **data)
 	FILE *fp;	//puntero para lectura de archivos
 	
 	//obtener fecha y hora de la medida
-	char date[30];
+	char aux[40];
 	time_t t = time(NULL);
 	struct tm tstamp = *localtime(&t);
 
-	sprintf(date, "%d-%02d-%02d %02d:%02d:%02d\n", tstamp.tm_year + 1900, tstamp.tm_mon + 1, tstamp.tm_mday, tstamp.tm_hour, tstamp.tm_min, tstamp.tm_sec);
-	strcat((*data), date);
+	struct sysinfo s_info;
+	sysinfo(&s_info);
+
+	sprintf(aux, "%d-%02d-%02d %02d:%02d:%02d", tstamp.tm_year + 1900, tstamp.tm_mon + 1, tstamp.tm_mday, tstamp.tm_hour, tstamp.tm_min, tstamp.tm_sec);
+	strncat((*data), aux, strlen(aux));
+	
+	memset(aux,0,strlen(aux));
+	
+	sprintf(aux, "%ld", s_info.uptime);
+	strncat((*data), aux, strlen(aux));
+	strncat((*data), "||\n", 4);
 
 	prcnt = 0;
 	dr = opendir(PROC_DIR);

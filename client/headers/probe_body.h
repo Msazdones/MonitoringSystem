@@ -16,8 +16,13 @@
 
 //mensajes de protocolo de comunicaciones
 #define ACK_MSG "OK"
+#define NACK_MSG "NOK"
+#define PASS_REQ "PASS"
+#define PASS_RES "AUTH"
+#define DATA_SIZE "SIZE"
 
 int initial_setup(SSL **);
 int probe_body(SSL **);
+int introduce_creds(SSL **);
 
 #endif

@@ -1,13 +1,30 @@
 import config as cfg
 
+def connect_to_db():
+	client = cfg.MongoClient(cfg.MONGO_DIR)
+	return client[cfg.DB][cfg.credsCOLL]
+
+def check_login(dbhpassphrase, passphrase):
+	hpassphrase = cfg.sha256(passphrase.encode("utf-8")).hexdigest()
+
+	if(hpassphrase == dbhpassphrase):
+		return True
+
+	return False
+
 def initial_setup(q, conn):
 	data = conn.recv(cfg.MAX_BLIND_DATA)
 	if not data:
-		print("Something went wrong. Aborting\n")
+		print("Something went wrong. Aborting.")
 	q.append(data.decode(cfg.DECODING))
 	conn.sendall(cfg.ACK_MSG)
 
+	print(data.decode(cfg.DECODING))
+
 def reception():
+	col = connect_to_db()
+	dbhpassphrase = col.find_one({},{"_id": 0, "passwd": 1})["passwd"] 
+
 	# Crea un socket TCP
 	ssocket = cfg.socket.socket(cfg.socket.AF_INET, cfg.socket.SOCK_STREAM)
 
@@ -24,7 +41,7 @@ def reception():
 	prs = []
 	manager = cfg.mp.Manager()
 	shared_lists = []
-
+	
 	print("Data recption system active. Waiting for the connection.\n")
 	
 	client_list = []
@@ -43,23 +60,46 @@ def reception():
 			p.start()
 
 			print(f"Connected by {addr}")
-			initial_setup(shared_lists[last_sl], client_socket)
+			
+			client_socket.sendall(cfg.PASS_REQ)
+			print("Passphrase requested.")
 
 		for client in client_list:
-			if client in rs:
-				data_size = client.recv(cfg.MAX_BLIND_DATA)
-				data_size = int(data_size.decode(cfg.DECODING))
-				client.sendall(cfg.ACK_MSG)
+			try:
+				if client in rs:
+					cmsg = client.recv(cfg.MAX_BLIND_DATA).decode(cfg.DECODING)
+					if(cmsg[0:len(cfg.PASS_RES)] == cfg.PASS_RES):
+						if(not check_login(dbhpassphrase, cmsg[len(cfg.PASS_RES):len(cmsg)])):
+							client.sendall(cfg.NACK_MSG)
+							print("Wrong passphrase. Exiting.")
+							raise ValueError("Wrong passphrase. Exiting.")
+						
+						print("Client authenticated.")
+						client.sendall(cfg.ACK_MSG)
+						initial_setup(shared_lists[client_list.index(client)], client)
+					
+					elif(cmsg[0:len(cfg.DATA_SIZE)] == cfg.DATA_SIZE):
+						data_size = int(cmsg[len(cfg.DATA_SIZE): len(cmsg)])
+						client.sendall(cfg.ACK_MSG)
 
-				data = b''
-				while(len(data) < data_size):
-					data += client.recv(data_size)
+						data = b''
+						while(len(data) < data_size):
+							data += client.recv(data_size)
 
-				if not data:
-					client.close()
-					del shared_lists[client_list.index(client)]
-					client_list.remove(client)
-					continue
-				
-				print(client.getpeername())
-				shared_lists[client_list.index(client)].append(data.decode(cfg.DECODING))
+						if not data:
+							client.close()
+							del shared_lists[client_list.index(client)]
+							client_list.remove(client)
+							continue
+						
+						print(client.getpeername())
+						shared_lists[client_list.index(client)].append(data.decode(cfg.DECODING))
+			except Exception as error:
+				cindex = client_list.index(client)
+
+				prs[cindex].terminate()
+				del prs[cindex]
+
+				client.close()
+				del shared_lists[cindex]
+				client_list.remove(client)
