@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from itertools import islice
+from os import path
 import sys 
 import time
 
@@ -51,10 +52,10 @@ def main():
 
         for k in dates:
             try:
-                for p in jsondata[k]:
+                for p in jsondata[k]:    
                     csv_info = str(k) + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
                     csv_file = dat_dir + p["name"].replace("/", "-") + "_" + p["pid"] + ".csv"
-
+        
                     f = open(csv_file, "a")
                     f.write(csv_info)
                     f.close()

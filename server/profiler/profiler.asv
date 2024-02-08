@@ -1,0 +1,8 @@
+
+function profiler(name)
+    rawprdata = readtable(name);
+    raw
+    %rawprdata.Properties.VariableNames = ["DATETIME","CPU","RAM","RDISK","WDISK","TOTALTIME"];
+    %prdata = removevars(rawprdata,{'DATETIME','TOTALTIME'});
+    %prdata
+end
