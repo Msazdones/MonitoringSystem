@@ -2,7 +2,7 @@ import config as cfg
 
 def connect_to_db():
 	client = cfg.MongoClient(cfg.MONGO_DIR)
-	return client[cfg.DB][cfg.credsCOLL]
+	return client[cfg.DB_CREDS][cfg.credsCOLL]
 
 def check_login(dbhpassphrase, passphrase):
 	hpassphrase = cfg.sha256(passphrase.encode("utf-8")).hexdigest()

@@ -28,7 +28,7 @@ def main():
     
     db_conn = connect_to_db()
     hlist = db_conn.list_collection_names()
-
+    print(hlist)
     for host in hlist:
         jsondata = {}
         dates = []
@@ -45,14 +45,14 @@ def main():
                 stepcnt = stepcnt + 1
 
         dates = list(jsondata.keys())
-
+        print(len(dates), cnt)
         if(len(dates) == 0):
             continue
 
         for k in dates:
             try:
                 for p in jsondata[k]:
-                    csv_info = str(k) + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "\n"
+                    csv_info = str(k) + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
                     csv_file = dat_dir + p["name"].replace("/", "-") + "_" + p["pid"] + ".csv"
 
                     f = open(csv_file, "a")

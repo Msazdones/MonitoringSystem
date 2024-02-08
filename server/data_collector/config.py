@@ -25,6 +25,7 @@ MAX_CLIENTS = 5
 
 MONGO_DIR = "mongodb://127.0.0.1:27017/"
 DB = "test"
+DB_CREDS = "credentials"
 COLLECTION = "Client_"
 
 credsCOLL = "credentials"

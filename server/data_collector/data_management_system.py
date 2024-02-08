@@ -26,7 +26,7 @@ def filter_data(data, sys_params):
 			d.update({"CPU" : str(result)})
 			d.update({"TOTALTIME" : str(prseconds)})
 
-			print(d)
+			#print(d)
 
 		elif(fcnt == 1):
 			segmented_file = segmented_data[i].split(" ")
@@ -62,4 +62,4 @@ def data_management(q, msclient):
 		if(len(q) > 0):
 			data = q.pop(0)
 			pr_data = filter_data(data, [hertz, totmenpages])
-			#col.insert_one(pr_data)
+			col.insert_one(pr_data)
