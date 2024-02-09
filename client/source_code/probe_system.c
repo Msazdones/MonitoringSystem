@@ -5,6 +5,12 @@ int main()
 {
 	int socket_desc;
 	SSL_CTX *ctx = SSL_CTX_new(TLS_method());
+
+	if (SSL_CTX_load_verify_locations(ctx, "./keys/rootCA.pem", NULL) != 1) {
+		printf("Error al cargar el certificado de la CA raíz\n");
+		return -1;
+	}
+
 	SSL *sslsock = SSL_new(ctx);
 
 	if(!create_connection(&socket_desc))

@@ -8,7 +8,7 @@
 #include <openssl/err.h>
 
 #define SERVER_PORT 65432
-#define SERVER_IP "127.0.0.1"
+#define SERVER_IP "192.168.50.152"
 
 int create_connection(int *);
 int create_secure_connection(SSL **, int *);
