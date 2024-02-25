@@ -1,6 +1,6 @@
 import config as cfg
 
-def filter_data(data, sys_params):
+def data_filter(data, sys_params):
 	date = data[0:19]
 	sysuptime = float(data[19:data.index("||\n")])
 	data = data[data.index("||\n")+3:len(data)]
@@ -48,7 +48,7 @@ def connect_to_db(msclient):
 	col = cfg.COLLECTION + msclient.replace(".", "_")
 	return client[cfg.DB][col]
 
-def initial_setup(q):
+def get_initial_setup(q):
 	while True:
 		if(len(q) > 0):
 			data = q.pop(0)
@@ -57,9 +57,9 @@ def initial_setup(q):
 
 def data_management(q, msclient):
 	col = connect_to_db(msclient)
-	uptime, hertz, totmenpages = initial_setup(q)
+	uptime, hertz, totmenpages = get_initial_setup(q)
 	while True:
 		if(len(q) > 0):
 			data = q.pop(0)
-			pr_data = filter_data(data, [hertz, totmenpages])
+			pr_data = data_filter(data, [hertz, totmenpages])
 			col.insert_one(pr_data)

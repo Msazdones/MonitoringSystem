@@ -12,6 +12,7 @@ import data_management_system as dms
 import reception_system as rec
 
 MAX_BLIND_DATA = 1000000000
+MAX_CLIENTS = 5
 DECODING = "latin-1"
 ACK_MSG = b"OK"
 NACK_MSG = b"NOK"

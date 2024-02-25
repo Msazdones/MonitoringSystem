@@ -4,7 +4,9 @@ def connect_to_db():
 	client = cfg.MongoClient(cfg.MONGO_DIR)
 	return client[cfg.DB_CREDS][cfg.credsCOLL]
 
-def check_login(dbhpassphrase, passphrase):
+def check_login(col, passphrase):
+	dbhpassphrase = col.find_one({},{"_id": 0, "passwd": 1})["passwd"] 
+
 	hpassphrase = cfg.sha256(passphrase.encode("utf-8")).hexdigest()
 
 	if(hpassphrase == dbhpassphrase):
@@ -23,14 +25,12 @@ def initial_setup(q, conn):
 
 def reception():
 	col = connect_to_db()
-	dbhpassphrase = col.find_one({},{"_id": 0, "passwd": 1})["passwd"] 
-
 	# Crea un socket TCP
 	ssocket = cfg.socket.socket(cfg.socket.AF_INET, cfg.socket.SOCK_STREAM)
 
 	# Escucha conexiones entrantes en el puerto 65432
 	ssocket.bind((cfg.HOST, cfg.PORT))
-	ssocket.listen(5)
+	ssocket.listen(cfg.MAX_CLIENTS)
 
 	# Crea un contexto TLS
 	context = cfg.ssl.SSLContext(cfg.ssl.PROTOCOL_TLS_SERVER)
@@ -70,7 +70,7 @@ def reception():
 				if client in rs:
 					cmsg = client.recv(cfg.MAX_BLIND_DATA).decode(cfg.DECODING)
 					if(cmsg[0:len(cfg.PASS_RES)] == cfg.PASS_RES):
-						if(not check_login(dbhpassphrase, cmsg[len(cfg.PASS_RES):len(cmsg)])):
+						if(not check_login(col, cmsg[len(cfg.PASS_RES):len(cmsg)])):
 							client.sendall(cfg.NACK_MSG)
 							print("Wrong passphrase. Exiting.")
 							raise ValueError("Wrong passphrase. Exiting.")

@@ -21,6 +21,8 @@
 #define PASS_RES "AUTH"
 #define DATA_SIZE "SIZE"
 
+#define SERVER_CERT "./keys/rootCA.pem"
+
 int initial_setup(SSL **);
 int probe_body(SSL **);
 int introduce_creds(SSL **);

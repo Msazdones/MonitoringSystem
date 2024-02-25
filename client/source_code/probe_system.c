@@ -6,8 +6,8 @@ int main()
 	int socket_desc;
 	SSL_CTX *ctx = SSL_CTX_new(TLS_method());
 
-	if (SSL_CTX_load_verify_locations(ctx, "./keys/rootCA.pem", NULL) != 1) {
-		printf("Error al cargar el certificado de la CA raíz\n");
+	if (SSL_CTX_load_verify_locations(ctx, SERVER_CERT, NULL) != 1) {
+		printf("Loading cert failure. Exiting.\n");
 		return -1;
 	}
 
