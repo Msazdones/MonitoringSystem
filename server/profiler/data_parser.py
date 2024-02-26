@@ -4,7 +4,7 @@ from os import path
 import sys 
 import time
 
-dat_dir = "./dat_files/"
+dat_dir = "./learning_and_detection/data_files/"
 
 def connect_to_db():
     client = MongoClient("mongodb://127.0.0.1:27017/")
