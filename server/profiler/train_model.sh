@@ -51,7 +51,24 @@ do
             fi
             ;;    
         h)
-            echo "help"
+            echo "How to use: ./train_model.sh [option] [arg]..."
+            echo
+            echo "Launch the data parsing process and/or the machine learning model training process."
+            echo "The data parsing process is coded in python, in the route './data_adaptation/data_parser.py'."
+            echo "The machine learning model training proces is coded in matlab. Its source code can be found" 
+            echo "in './learning_and_detection/' directory, as well as the compiled files."
+            echo 
+            echo "Options:"
+            echo "  -o <output_dir>     Selects the output path for the parsed data files, the training data file path"
+            echo "                      for the model training process, or both."
+            echo "  -s <step>           Sets the step parameter for the data parsing process, to use a decimating over"
+            echo "                      the data."
+            echo "  -c <clientid>       Sets the clientid parameter, to parse the data of just one target."
+            echo "  -p                  Activate the data parsing process. The -o option is required."
+            echo "  -t <trainmode>      Activate the model training process and also sets the algorithm to use in the"
+            echo "                      machine learning model (svm, iforest, all). The -o option is required."
+            echo "  -h                  Displays this information page."
+
             exit 1
             ;;
         ?)

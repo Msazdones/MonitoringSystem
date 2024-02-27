@@ -1,4 +1,0 @@
-a=false
-
-echo $a
-
