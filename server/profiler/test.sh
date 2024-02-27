@@ -1,0 +1,4 @@
+a=false
+
+echo $a
+

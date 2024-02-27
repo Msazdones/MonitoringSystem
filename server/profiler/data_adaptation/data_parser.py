@@ -10,26 +10,47 @@ def connect_to_db():
     client = MongoClient("mongodb://127.0.0.1:27017/")
     return client["test"]
 
-def main():
+def check_input(params):
     step = 1
-    if(len(sys.argv) > 2):
-        print("Error: Max number of args exceeded. Exiting.")
-        sys.exit()
-    elif(len(sys.argv) == 1):
-        pass
-    elif(not sys.argv[1].isdigit()):
-        print("Error: The step arg must be an integer")
-        sys.exit()
-    else:
-        try:
-            step = int(sys.argv[1])
-        except:
-            print("Error: The step arg must be an integer")
-            sys.exit()
-    
+    clientid = None
+
+    if(len(params) <= 3 and (len(params) >= 1)):
+        if(len(params) > 0):
+            if(not path.isdir(params[0])):
+                print("Error: The first parameter must be a directory. Exiting.")
+                print("python3 train_model.py <savedir> [step] [clientid]")
+                sys.exit()  
+
+            data_dir = params[0]
+
+        if(len(params) > 1):
+            if(not params[1].isdigit()):
+                print("Error: The step arg must be an integer")
+                print("python3 train_model.py <savedir> [step] [clientid]")
+                sys.exit()
+
+            try:
+                step = int(params[1])
+            except:
+                print("Error: The step arg must be an integer")
+                print("python3 train_model.py <savedir> [step] [clientid]")
+                sys.exit()           
+        
+        if(len(params) == 3):
+            clientid = "Client_" + params[2]
+    return data_dir, step, clientid
+
+def main():
+    data_dir, step, clientid = check_input(sys.argv[1:len(sys.argv)])
+    print(data_dir, step, clientid)
+
     db_conn = connect_to_db()
     hlist = db_conn.list_collection_names()
-    print(hlist)
+    
+    if(clientid != None):
+        clindex = hlist.index(clientid)
+        hlist = [hlist[clindex]]
+
     for host in hlist:
         jsondata = {}
         dates = []
@@ -54,7 +75,7 @@ def main():
             try:
                 for p in jsondata[k]:    
                     csv_info = str(k) + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
-                    csv_file = dat_dir + p["name"].replace("/", "-") + "_" + p["pid"] + ".csv"
+                    csv_file = data_dir + p["name"].replace("/", "-") + "_" + p["pid"] + ".csv"
         
                     f = open(csv_file, "a")
                     f.write(csv_info)
