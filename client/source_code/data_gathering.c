@@ -21,7 +21,7 @@ void data_gathering(char **data)
 	struct sysinfo s_info;
 	sysinfo(&s_info);
 
-	sprintf(aux, "%d-%02d-%02dT%02d:%02d:%02d", tstamp.tm_year + 1900, tstamp.tm_mon + 1, tstamp.tm_mday, tstamp.tm_hour, tstamp.tm_min, tstamp.tm_sec);
+	sprintf(aux, "%d-%02d-%02d %02d:%02d:%02d", tstamp.tm_year + 1900, tstamp.tm_mon + 1, tstamp.tm_mday, tstamp.tm_hour, tstamp.tm_min, tstamp.tm_sec);
 	strncat((*data), aux, strlen(aux));
 	
 	memset(aux,0,strlen(aux));
