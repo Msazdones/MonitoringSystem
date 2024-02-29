@@ -1,5 +1,5 @@
 
-function detection_matrix = detect_anomalies(Model_name, observations_file, alg)
+function detection_matrix = detect_anomalies(Model_name, observations_file, output_dir, alg)
     Model = loadLearnerForCoder(Model_name);
 
     rawprdata = readtable(observations_file, 'Format','%s %f %f %f %f %f');
@@ -15,10 +15,11 @@ function detection_matrix = detect_anomalies(Model_name, observations_file, alg)
     
     path = strsplit(observations_file, "/");
     
-    if alg == "SVM"
-        writetable(detection_matrix, strcat("../detection_info/SVM/det_", path(length(path))));
+    savepath = strcat(output_dir, "det_");
+    if alg == "svm"
+        writetable(detection_matrix, strcat(savepath, path(length(path))));
     elseif alg == "iforest"
-        writetable(detection_matrix, strcat("../detection_info/iforest/det_", path(length(path))));
+        writetable(detection_matrix, strcat(savepath, path(length(path))));
     end
     %./run_profiler.sh "/usr/local/MATLAB/R2023b/" "../dat_files/(code)_2557.csv"
 end

@@ -1,18 +1,19 @@
 
-function savepath = SVM_profiler(name, output_dir)
-    rawprdata = readtable(name, 'Format','%s %f %f %f %f %f');
-    rawprdata.Properties.VariableNames = ["DATETIME","CPU","RAM","RDISK","WDISK","TOTALTIME"];
-    rawprdata = rmmissing(rawprdata);
-
-    %timestamp = rawprdata.DATETIME;
-    rawprdata = removevars(rawprdata,{'DATETIME'});
+function SVMModel = SVM_profiler(name, output_dir)
+    opts = detectImportOptions(name);
+    opts = setvaropts(opts,"DATETIME",'inputFormat','uuuu-MM-dd HH:mm:ss');
     
+    rawprdata = readtable(name, opts);
+    rawprdata = rmmissing(rawprdata);
+    
+    timestamps = arrayfun(@(x) datenum(x) * 86400, rawprdata.DATETIME);
+    rawprdata.DATETIME = timestamps;
     SVMModel = ocsvm(rawprdata, ContaminationFraction=0);
 
     path = strsplit(name, "/");
     savepath = strcat(output_dir, "SVMtrainedModel_");
     savepath = strcat(savepath, path(length(path)));
-    [p,f,e]=fileparts(savepath);
+    [p,f]=fileparts(savepath);
     savepath = fullfile(p,f);
     
     saveLearnerForCoder(SVMModel, savepath)
