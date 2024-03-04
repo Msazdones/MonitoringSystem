@@ -1,22 +1,28 @@
-
-function detection_matrix = SVM_detect_anomalies(Model_name, observations_file, output_dir)
+function detection_matrix = SVM_detect_anomalies(Model_name, numberofclients, period)
     Model_name = strrep(Model_name, "'", "");
     Model = loadLearnerForCoder(Model_name);
+
+    client = tcpclient("localhost",6112);
    
-    opts = detectImportOptions(observations_file);
+    period = str2double(period);
+    numberofclients = str2double(numberofclients);
     
-    rawprdata = readtable(observations_file, opts);
-    rawprdata = rmmissing(rawprdata);
+    pause on
     
-    [anomaly_status, anomaly_score] = isanomaly(Model, rawprdata);
-
-    detection_matrix = table(rawprdata.DATETIME, anomaly_score, anomaly_status);
+    while true
+        for ci = 1 : numberofclients
+            data = read(client,client.NumBytesAvailable,"string");
+            data = str2double(split(splitlines(data), ","));
+            rawprdata = table(data(:,1), data(:,2), data(:,3), data(:,4), data(:,5), data(:,6), 'VariableNames', Model.PredictorNames);
+            rawprdata = rmmissing(rawprdata);
     
-    path = strsplit(observations_file, "/");
-    
-    savepath = strcat(output_dir, "det_");
-
-    writetable(detection_matrix, strcat(savepath, path(length(path))), 'WriteMode','append');
-
+            [anomaly_status, anomaly_score] = isanomaly(Model, rawprdata);
+            detection_matrix = num2str([rawprdata.DATETIME' anomaly_score' anomaly_status']);
+            
+            write(client, num2str(strlength(detection_matrix)), "string")
+            write(client, detection_matrix, "string")
+        end
+        pause(period);
+    end
     %./run_profiler.sh "/usr/local/MATLAB/R2023b/" "../dat_files/(code)_2557.csv"
 end

@@ -1,7 +1,9 @@
 import config as cfg
+import chardet 
 
 def parse_file_to_detection(config, conn):
 
+    clients_data = []
     for host in config["clients"]:
         rawdata = reversed(list(conn[host].find({},{"_id": 0}).sort({"_id": -1}).limit(config["samples"])))
 
@@ -14,43 +16,61 @@ def parse_file_to_detection(config, conn):
         if(len(dates) == 0):
             continue
         
-        csv_file = cfg.detection_data_dir + config["alg"] + cfg.data_input_dir + host + "_input.csv" 
-        if(not cfg.os.path.isfile(csv_file)):
-            monitoring_data = "DATETIME,CPU,RAM,RDISK,WDISK,TOTALTIME\n"
-        else:
-            monitoring_data = ""
-
+        csv_info = ""
         for k in dates:
             for p in data[k]:
                 if(p["name"] == config["pr_target"]):
                     timestamp = str(int(cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S").timestamp()))
-                    csv_info = timestamp + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
-                    monitoring_data = monitoring_data + csv_info
+                    csv_info = csv_info + timestamp + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
+                    break
 
-        f = open(csv_file, "a")
-        f.write(monitoring_data)
-        f.close()
+        clients_data.append(csv_info[0:len(csv_info)-1])
+            
+    return clients_data
 
 
-def detection(config, conn):
-
-    parse_file_to_detection(config, conn)
-
+def launch_matlab_detector(config):
     cfg.os.environ["LD_LIBRARY_PATH"] = ""
     for d in cfg.matlab_dependencies:
         cfg.os.environ["LD_LIBRARY_PATH"] += cfg.matlab_dependencies_root + d + cfg.os.pathsep
 
     binary = cfg.path_to_detector_binary
-    output_dir = cfg.detection_data_dir + config["alg"] + cfg.data_output_dir
+
+    execution = 'eval ' + \
+            '"' + binary +\
+            '" "' + config["model"] +\
+            '" "' + str(len(config["clients"])) +\
+            '" "' + str(config["period"]) + '"'
+
+    print(execution)
+    proceso = cfg.subprocess.Popen(execution, shell=True)
+
+def detection(config, conn):
+    ssocket = cfg.socket.socket(cfg.socket.AF_INET, cfg.socket.SOCK_STREAM)
+    ssocket.bind(('localhost', 6112))
+    ssocket.listen(1)
+
+    launch_matlab_detector(config)
+
+    sclient, client_address = ssocket.accept()
 
     while True:
-        for host in config["clients"]:
-            csv_file = cfg.detection_data_dir + config["alg"] + cfg.data_input_dir + host + "_input" + ".csv"
+        cd = parse_file_to_detection(config, conn)
 
-            execution = 'eval ' + '"' + binary + '"' + ' "' + config["model"] + '" "' + csv_file + '" "' + output_dir + '" "' + config["alg"] + '"'
-            print(execution)
-            cfg.os.system(execution)
-        cfg.time.sleep(config["period"])
+        for c in cd:
+            sclient.send(c.encode())
+            s = sclient.recv(1000)
+            rdata = sclient.recv(int(s.decode()), cfg.socket.MSG_WAITALL)
+            rdata = list(filter(None, rdata.decode().split(" ")))
+            
+            ts = rdata[0:config["samples"]] 
+            rt = rdata[config["samples"]:(config["samples"]*2)]
+            st = rdata[(config["samples"]*2):config["samples"]*3]
+            for i in range(0, len(st)):
+                if st[i] == '1':
+                    print("Alerta, positivo en tiempo: " + ts[i])
+                else:
+                    print("Todo chill")
 
 
 #{"alg", "model", "clients", "samples", "period", "pr_target"}
