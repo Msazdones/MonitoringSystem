@@ -99,7 +99,7 @@ def menu():
                     clients = cfg.aux.get_db_info(conn)
                     print("Aviable clients: \n")
 
-                    cfg.aux.print_choosing_list(clients)
+                    cfg.aux.print_options(clients)
 
                     print("\n")
                     opt_m2 = input("Choose one or more, separated by space (integer 0-" + str(len(clients)-1) + ", or type all for all the clients): ")
@@ -242,7 +242,7 @@ def menu():
                         print("\n")
                         continue 
 
-                    cfg.aux.print_choosing_list(flist)
+                    cfg.aux.print_options(flist)
                     print("\n")
                     opt_m2 = input("Choose one or more, separated by space (integer 0-" + str(len(flist)-1) + ", or type all for all the files): ")
                     

@@ -1,8 +1,8 @@
 import config as cfg
 
 def connect_to_db():
-    client = cfg.MongoClient("mongodb://127.0.0.1:27017/")
-    return client["test"]
+    client = cfg.MongoClient(cfg.DATABASE_DIR)
+    return client[cfg.DATABASE_DB]
 
 def get_db_info(db_conn):
    return db_conn.list_collection_names()
@@ -35,7 +35,7 @@ def check_float_input(f, ll, hl):
     except:
         return False
 
-def print_choosing_list(l):
+def print_options(l):
     col = 0
     i = 0
     for c in l:

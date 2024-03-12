@@ -32,6 +32,10 @@ data_output_dir = "/output/"
 
 path_to_detector_binary = "./learning_and_detection/sourcecode/SVM_detect_anomaliesstandaloneApplication/SVM_detect_anomalies"
 
+#auxiliary
+DATABASE_DIR = "mongodb://127.0.0.1:27017/"
+DATABASE_DB = "test"
+
 #matlab configuration
 matlab_dependencies_root = "/usr/local/MATLAB/R2023b/"
 matlab_dependencies = ["/runtime/glnxa64", "/bin/glnxa64", "/sys/os/glnxa64", "/sys/opengl/lib/glnxa64"]

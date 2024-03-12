@@ -29,7 +29,7 @@ def parse_file_to_detection(config, conn):
     return clients_data
 
 
-def launch_matlab_detector(config):
+def launch_detector_matlab(config):
     cfg.os.environ["LD_LIBRARY_PATH"] = ""
     for d in cfg.matlab_dependencies:
         cfg.os.environ["LD_LIBRARY_PATH"] += cfg.matlab_dependencies_root + d + cfg.os.pathsep
@@ -50,7 +50,7 @@ def detection(config, conn):
     ssocket.bind(('localhost', 6112))
     ssocket.listen(1)
 
-    launch_matlab_detector(config)
+    launch_detector_matlab(config)
 
     sclient, client_address = ssocket.accept()
 
@@ -81,16 +81,13 @@ def menu():
 
     while True:
         print("Welcome to the detector launcher. What do you want to do?\n")
-        print("     1. Configure launch.")
-        print("     2. Check current configuration.")
-        print("     3. Train model.")
-        print("     4. Help.")
-        print("     5. Exit.\n")
+        print("     1. Configure and launch.")
+        print("     2. Exit.\n")
 
-        opt_m1 = input("Choose an option (integer 1-5): ")
+        opt_m1 = input("Choose an option (integer 1-2): ")
         print("\n")
         
-        if(not cfg.aux.check_numeric_input(opt_m1, 1, 5)):
+        if(not cfg.aux.check_numeric_input(opt_m1, 1, 2)):
             print("Bad input. Try again.")
             print("\n")
             continue
@@ -111,7 +108,7 @@ def menu():
                 continue  
 
             flist = cfg.os.listdir(cfg.models_directory + launcher_config["alg"])
-            cfg.aux.print_choosing_list(flist)
+            cfg.aux.print_options(flist)
             print("\n")
 
             opt_m2 = input("Choose your machine learning model (just one) for detection, from directory '" + cfg.models_directory + launcher_config["alg"] + "/' (integer): ")
@@ -127,7 +124,7 @@ def menu():
             clients = cfg.aux.get_db_info(conn)
             print("Aviable clients: \n")
 
-            cfg.aux.print_choosing_list(clients)
+            cfg.aux.print_options(clients)
 
             print("\n")
             opt_m2 = input("Choose one or more, separated by space (integer 0-" + str(len(clients)-1) + ", or type all for all the clients): ")
@@ -184,14 +181,6 @@ def menu():
                     break
 
         if(opt_m1 == "2"):
-            print("The current configuration is: ", launcher_config)
-            print("\n")
-            pass
-        if(opt_m1 == "3"):
-            pass
-        if(opt_m1 == "4"):
-            pass
-        if(opt_m1 == "5"):
             cfg.sys.exit()
 
 if __name__ == "__main__":
