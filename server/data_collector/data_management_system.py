@@ -22,7 +22,7 @@ def data_filter(data, sys_params):
 			
 			d.update({"pid" : segmented_file[0]})
 			d.update({"name" : pname})
-			d.update({"status" : segmented_file[2]})
+			d.update({"status" : segmented_file[1]})
 			d.update({"CPU" : str(result)})
 			d.update({"TOTALTIME" : str(prseconds)})
 
