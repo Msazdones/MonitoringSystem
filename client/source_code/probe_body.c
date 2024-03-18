@@ -40,7 +40,7 @@ int probe_body(SSL **sslsock)
 			printf("Fallo al enviar los datos\n");
 			return -1;
 		}
-		sleep(2);	
+		sleep(SLEEPTIME);	
 	}
 	return 0;
 }
