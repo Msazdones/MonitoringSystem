@@ -56,21 +56,25 @@ def detection(config, conn):
 
     while True:
         cd = parse_file_to_detection(config, conn)
-
         for c in cd:
-            sclient.send(c.encode())
-            s = sclient.recv(1000)
-            rdata = sclient.recv(int(s.decode()), cfg.socket.MSG_WAITALL)
-            rdata = list(filter(None, rdata.decode().split(" ")))
             
-            ts = rdata[0:config["samples"]] 
-            rt = rdata[config["samples"]:(config["samples"]*2)]
-            st = rdata[(config["samples"]*2):config["samples"]*3]
-            for i in range(0, len(st)):
-                if st[i] == '1':
-                    print("Alerta, positivo en tiempo: " + ts[i])
-                else:
-                    print("Todo chill")
+            if c != '':
+                sclient.send(c.encode())
+                s = sclient.recv(1000)
+                rdata = sclient.recv(int(s.decode()), cfg.socket.MSG_WAITALL)
+                rdata = list(filter(None, rdata.decode().split(" ")))
+                
+                ts = rdata[0:config["samples"]] 
+                rt = rdata[config["samples"]:(config["samples"]*2)]
+                st = rdata[(config["samples"]*2):config["samples"]*3]
+                for i in range(0, len(st)):
+                    if st[i] == '1':
+                        print("Alerta, positivo en tiempo: " + ts[i])
+                    else:
+                        print("Todo chill")
+            else:
+                print("De momento no hay muestras.")
+                cfg.time.sleep(config["period"])
 
 
 #{"alg", "model", "clients", "samples", "period", "pr_target"}

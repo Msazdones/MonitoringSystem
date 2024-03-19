@@ -17,7 +17,7 @@ def data_filter(data, sys_params):
 			start_time = float(segmented_file[20])
 			total_time = float(segmented_file[12]) + float(segmented_file[13])
 			
-			prseconds = sysuptime - (start_time / sysuptime)
+			prseconds = sysuptime - (start_time / sys_params[0])
 			result = round(100 * ((total_time / sys_params[0]) / prseconds), 2)
 			
 			d.update({"pid" : segmented_file[0]})
@@ -25,8 +25,6 @@ def data_filter(data, sys_params):
 			d.update({"status" : segmented_file[1]})
 			d.update({"CPU" : str(result)})
 			d.update({"TOTALTIME" : str(prseconds)})
-
-			#print(d)
 
 		elif(fcnt == 1):
 			segmented_file = segmented_data[i].split(" ")

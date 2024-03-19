@@ -1,10 +1,11 @@
 function detection_matrix = SVM_detect_anomalies(Model_name, numberofclients, period)
     Model_name = strrep(Model_name, "'", "");
     Model = loadLearnerForCoder(Model_name);
-
-    client = tcpclient("localhost",6112);
-   
+    
     period = str2double(period);
+
+    client = tcpclient("localhost",6112, "Timeout", period);
+    
     numberofclients = str2double(numberofclients);
     
     pause on
@@ -12,15 +13,18 @@ function detection_matrix = SVM_detect_anomalies(Model_name, numberofclients, pe
     while true
         for ci = 1 : numberofclients
             data = read(client,client.NumBytesAvailable,"string");
-            data = str2double(split(splitlines(data), ","));
-            rawprdata = table(data(:,1), data(:,2), data(:,3), data(:,4), data(:,5), data(:,6), 'VariableNames', Model.PredictorNames);
-            rawprdata = rmmissing(rawprdata);
-    
-            [anomaly_status, anomaly_score] = isanomaly(Model, rawprdata);
-            detection_matrix = num2str([rawprdata.DATETIME' anomaly_score' anomaly_status']);
-            
-            write(client, num2str(strlength(detection_matrix)), "string")
-            write(client, detection_matrix, "string")
+
+            if ~isempty(data)
+                data = str2double(split(splitlines(data), ","));
+                rawprdata = table(data(:,1), data(:,2), data(:,3), data(:,4), data(:,5), data(:,6), 'VariableNames', Model.PredictorNames);
+                rawprdata = rmmissing(rawprdata);
+        
+                [anomaly_status, anomaly_score] = isanomaly(Model, rawprdata);
+                detection_matrix = num2str([rawprdata.DATETIME' anomaly_score' anomaly_status']);
+                
+                write(client, num2str(strlength(detection_matrix)), "string")
+                write(client, detection_matrix, "string")
+            end
         end
         pause(period);
     end

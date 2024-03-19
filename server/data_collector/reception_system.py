@@ -93,7 +93,6 @@ def reception():
 							client_list.remove(client)
 							continue
 						
-						print(client.getpeername())
 						shared_lists[client_list.index(client)].append(data.decode(cfg.DECODING))
 			except Exception as error:
 				cindex = client_list.index(client)
