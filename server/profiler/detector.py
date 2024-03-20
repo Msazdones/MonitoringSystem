@@ -3,7 +3,6 @@ import chardet
 
 def parse_file_to_detection(config, conn):
 
-    clients_data = []
     for host in config["clients"]:
         rawdata = reversed(list(conn[host].find({},{"_id": 0}).sort({"_id": -1}).limit(config["samples"])))
 
@@ -15,18 +14,19 @@ def parse_file_to_detection(config, conn):
 
         if(len(dates) == 0):
             continue
-        
-        csv_info = ""
+
+        pid_lists = {}
         for k in dates:
             for p in data[k]:
                 if(p["name"] == config["pr_target"]):
-                    timestamp = str(int(cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S").timestamp()))
-                    csv_info = csv_info + timestamp + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
-                    break
+                    if(p["pid"] not in pid_lists):
+                        pid_lists.update({p["pid"] : ""})
 
-        clients_data.append(csv_info[0:len(csv_info)-1])
-            
-    return clients_data
+                    timestamp = str(int(cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S").timestamp()))
+                    csv_info = timestamp + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
+                    pid_lists.update({p["pid"] : pid_lists[p["pid"]] + csv_info})             
+    
+    return pid_lists
 
 
 def launch_detector_matlab(config):
@@ -45,6 +45,33 @@ def launch_detector_matlab(config):
     print(execution)
     proceso = cfg.subprocess.Popen(execution, shell=True)
 
+def log_detection_results(samples, pids, rdata):
+        ts = []
+        rt = []
+        st = []
+
+        for i in range(0, len(pids)):
+            ll = samples * i
+            hl = samples * (i + 1)
+            ts.append(rdata[ll:hl])
+
+            ll = samples * (i + len(pids))
+            hl = samples * (i + len(pids) + 1)
+            rt.append(rdata[ll:hl])
+
+            ll = samples * (i + (len(pids) * 2))
+            hl = samples * (i + (len(pids) * 2) + 1)
+            st.append(rdata[ll:hl])
+        
+        for i in range(0, len(pids)):
+            print(pids[i])
+            for j in range(0, len(st[i])):
+                if st[i][j] == '1':
+                    print("Alerta, positivo:", ts[i][j], rt[i][j], st[i][j])
+                else:
+                    print("Todo chill", ts[i][j], rt[i][j], st[i][j])
+        print("----------------------------------------------------------------")
+
 def detection(config, conn):
     ssocket = cfg.socket.socket(cfg.socket.AF_INET, cfg.socket.SOCK_STREAM)
     ssocket.bind(('localhost', 6112))
@@ -56,28 +83,27 @@ def detection(config, conn):
 
     while True:
         cd = parse_file_to_detection(config, conn)
-        for c in cd:
+        pids = list(cd.keys())
+        
+        if len(pids) != 0:
+            payload = ""
+            for k in pids:
+                payload = payload + cd[k]
+            payload = payload[0:len(payload)-1]
+
+            sclient.send(payload.encode())
+            s = sclient.recv(1000)
+            rdata = sclient.recv(int(s.decode()), cfg.socket.MSG_WAITALL)
+            rdata = list(filter(None, rdata.decode().split(" ")))
             
-            if c != '':
-                sclient.send(c.encode())
-                s = sclient.recv(1000)
-                rdata = sclient.recv(int(s.decode()), cfg.socket.MSG_WAITALL)
-                rdata = list(filter(None, rdata.decode().split(" ")))
-                
-                ts = rdata[0:config["samples"]] 
-                rt = rdata[config["samples"]:(config["samples"]*2)]
-                st = rdata[(config["samples"]*2):config["samples"]*3]
-                for i in range(0, len(st)):
-                    if st[i] == '1':
-                        print("Alerta, positivo en tiempo: " + ts[i])
-                    else:
-                        print("Todo chill")
-            else:
-                print("De momento no hay muestras.")
-                cfg.time.sleep(config["period"])
+            log_detection_results(config["samples"], pids, rdata)
+
+        else:
+            print("De momento no hay muestras.")
+            cfg.time.sleep(config["period"])
 
 
-#{"alg", "model", "clients", "samples", "period", "pr_target"}
+#{"alg", "model", "clients", "samples", "period", "pr_target"} 4683
 
 def menu():
     launcher_config = {}

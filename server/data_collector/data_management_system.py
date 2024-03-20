@@ -7,6 +7,7 @@ def data_filter(data, sys_params):
 	d = {}
 	rdata = []
 	segmented_data = data.split("||\n")
+	
 	for i in range(0, len(segmented_data)-1):
 		fcnt = i % 3
 		if(fcnt == 0):
@@ -25,6 +26,9 @@ def data_filter(data, sys_params):
 			d.update({"status" : segmented_file[1]})
 			d.update({"CPU" : str(result)})
 			d.update({"TOTALTIME" : str(prseconds)})
+		
+			if(pname == "(Isolated Web Co)"):
+				print(i, segmented_file[0], pname, "CPU:", str(result))
 
 		elif(fcnt == 1):
 			segmented_file = segmented_data[i].split(" ")
