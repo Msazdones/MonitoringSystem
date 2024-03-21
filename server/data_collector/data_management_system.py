@@ -20,7 +20,7 @@ def data_filter(data, sys_params):
 			
 			prseconds = sysuptime - (start_time / sys_params[0])
 			result = round(100 * ((total_time / sys_params[0]) / prseconds), 2)
-			
+			pid = segmented_file[0]
 			d.update({"pid" : segmented_file[0]})
 			d.update({"name" : pname})
 			d.update({"status" : segmented_file[1]})
@@ -31,9 +31,18 @@ def data_filter(data, sys_params):
 				print(i, segmented_file[0], pname, "CPU:", str(result))
 
 		elif(fcnt == 1):
-			segmented_file = segmented_data[i].split(" ")
-			result = round(100 * (int(segmented_file[0]) / sys_params[1]), 2)
+			ram_usage = cfg.re.findall("VmRSS:.*", segmented_data[i])
+			if ram_usage == []:
+				ram_usage = 0
+			else:
+				ram_usage = ram_usage[0].split("\t")[1].replace(" ", "")
+				ram_usage = float(ram_usage[0:len(ram_usage)-2])
+
+			result = round(100 * (ram_usage / sys_params[1]), 2)
 			
+			if(pname == "(Isolated Web Co)"):
+				print(i, pid, pname, "RAM:", str(result))			
+
 			d.update({"RAM" : str(result)})
 
 		elif(fcnt == 2):
@@ -55,13 +64,13 @@ def get_initial_setup(q):
 		if(len(q) > 0):
 			data = q.pop(0)
 			data = data[1:len(data)-1].split(",")
-			return float(data[0]), float(data[1]), float(data[2])
+			return float(data[0]), float(data[1]), float(data[2])/1024
 
 def data_management(q, msclient):
 	col = connect_to_db(msclient)
-	uptime, hertz, totmenpages = get_initial_setup(q)
+	uptime, hertz, totram = get_initial_setup(q)
 	while True:
 		if(len(q) > 0):
 			data = q.pop(0)
-			pr_data = data_filter(data, [hertz, totmenpages])
+			pr_data = data_filter(data, [hertz, totram])
 			col.insert_one(pr_data)
