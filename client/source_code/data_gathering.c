@@ -2,7 +2,7 @@
 
 void data_gathering(char **data)
 {
-	const char DATAFILES[3][6] = {"stat", "status", "io"};
+	const char DATAFILES[3][7] = {"stat", "status", "io"};
 	char file_route[100];
 	char file_buffer[BUFFER_SIZE];
 	
@@ -55,7 +55,6 @@ void data_gathering(char **data)
 					}
 					fread(file_buffer, BUFFER_SIZE, 1, fp);
 					fclose(fp);
-
 					strcat((*data), file_buffer);
 					strcat((*data), "||\n");
 				}	

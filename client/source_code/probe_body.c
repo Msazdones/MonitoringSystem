@@ -34,7 +34,7 @@ int probe_body(SSL **sslsock)
 			printf("Fallo en la recepción. Abortando.\n");
 			return -1;
 		}
-
+		
 		if(SSL_write(*sslsock, sending_data, strlen(sending_data)) < 0)
 		{
 			printf("Fallo al enviar los datos\n");
@@ -50,7 +50,6 @@ int initial_setup(SSL **sslsock)
 	char data[100], aux[20];
 
 	int hertz = sysconf(_SC_CLK_TCK);
-	int totmempages = get_phys_pages();
 	struct sysinfo s_info;
 	sysinfo(&s_info);
 
@@ -63,7 +62,7 @@ int initial_setup(SSL **sslsock)
 	sprintf(aux, "%d", hertz);
 	strncat(data, aux, strlen(aux));
 	strncat(data, ",", 2);
-	sprintf(aux, "%d", totmempages);
+	sprintf(aux, "%ld", s_info.totalram);
 	strncat(data, aux, strlen(aux));
 	strncat(data, ")", 2);
 

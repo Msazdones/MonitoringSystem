@@ -11,7 +11,7 @@
 
 #define PROC_DIR "/proc/"
 #define MAX_PROCS_TO_EVAL 1000
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 1500
 #define FILES_TO_EVAL 3
 
 void data_gathering(char **);

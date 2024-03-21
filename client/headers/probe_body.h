@@ -11,10 +11,10 @@
 #include <ctype.h>
 #include <unistd.h> 
 
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 1500
 #define MAX_PROCS_TO_EVAL 1000
 
-#define SLEEPTIME 1
+#define SLEEPTIME 2
 
 //mensajes de protocolo de comunicaciones
 #define ACK_MSG "OK"
