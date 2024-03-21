@@ -3,9 +3,17 @@ function SVMModel = SVM_profiler(name, output_dir)
     opts = detectImportOptions(name);
     
     rawprdata = readtable(name, opts);
-    rawprdata = rmmissing(rawprdata);
     
-    SVMModel = ocsvm(rawprdata, ContaminationFraction=0);
+    rawprdata.DATETIME = [];
+    rawprdata.TOTALTIME = [];
+    rawprdata.RDISK = [];
+    rawprdata.WDISK = [];
+    rawprdata.RAM = [];
+
+    rawprdata = rmmissing(rawprdata);
+    rawprdata = normalize(rawprdata);
+    
+    SVMModel = ocsvm(rawprdata, ContaminationFraction=0.1, StandardizeData=true, KernelScale="auto");
 
     path = strsplit(name, "/");
     savepath = strcat(output_dir, "SVMtrainedModel_");
