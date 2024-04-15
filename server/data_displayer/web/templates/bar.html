@@ -5,13 +5,28 @@
 	<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/0.10.0/lodash.min.js"></script>
 	<script src="js/script.js"></script>
+	<link rel= "stylesheet" type= "text/css" href= "css/style.css">
 	<body>
-		<div id="myPlot" style="width:100%;max-width:700px"></div>
-
-		<div id="Hosts" style="width:100%;max-width:700px">
-			<ul id="hostList">
+		<div class="topnav">
+			<a class="active" href="#dashboard">Dashboard</a>
+			<a href="#logout">Logout</a>
+		</div>
+		
+		<div id="Hosts" class="sidebar">
+			<div class="sectionhead"><h2>Monitored Hosts</h2></div>
+			<ul id="hostList" class="hostList">
 			</ul>
 		</div>
+
+		<div id="plotCPU" class="plotCPU"></div>
+		<div id="plotRAM" class="plotRAM"></div>
+		<div id="plotRDISK" class="plotRDISK"></div>
+		<div id="plotWDISK" class="plotWDISK"></div>
+
+		<!-- <div id="Hosts" style="width:100%;max-width:700px">
+			<ul id="hostList">
+			</ul>
+		</div>-->
 	</body>
 </html>
 
