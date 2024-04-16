@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session
+from flask import Flask, render_template, session, redirect, request
 import json
 import pandas as pd
 import plotly
@@ -8,9 +8,21 @@ from threading import Lock
 import multiprocessing as mp
 import re
 
+import hashlib
+import random
+
 from pymongo import MongoClient
 
+MONGO_DIR = "mongodb://127.0.0.1:27017/"
+MONGO_CRED_DB = "wscreds"
+MONGO_DATA_DB = "test"
+
 app = Flask(__name__, static_url_path='',  static_folder='web/static', template_folder='web/templates')
+
+sk = hashlib.sha256()
+sk.update(str(random.getrandbits(128)).encode())
+app.secret_key = sk.hexdigest()
+
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 thread = None
@@ -19,17 +31,48 @@ thread_lock = Lock()
 manager = mp.Manager()
 display_info = manager.dict()
 
-@app.route('/')
+@app.route('/dashboard')
 def plots():
-    return render_template('bar.html')
+    if 'logged_in' not in session:
+        return redirect("http://127.0.0.1:5000/login")
+
+    else:
+        if session['logged_in']:
+            return render_template('bar.html')
+        else:
+            return redirect("http://127.0.0.1:5000/login")
+        
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/login_creds', methods=['POST'])
+def logincreds():
+    c = connect_to_db(MONGO_CRED_DB)["credentials"]
+
+    user = re.sub('[^A-Za-z0-9]+', '', request.form["user"])
+    h = hashlib.sha256()
+    h.update(request.form["password"].encode())
+    passwd = h.hexdigest()
+    
+    data = c.find_one({user : passwd},{"_id": 0})
+    if data == None:
+        return render_template('login.html')
+    else:
+        session['logged_in'] = True
+        return redirect("http://127.0.0.1:5000/dashboard")
+
+@app.route('/logout')
+def logout():
+    session['logged_in'] = False
+    return redirect("http://127.0.0.1:5000/login")
 
 @socketio.event
 def connect():
     print("Connected")
     time_data = list(range(0,101))
     global thread
-    with thread_lock:
-        display_info.update({"prueba" : "test"})
     with thread_lock:
         if thread is None:
             with app.app_context():
@@ -39,7 +82,7 @@ def connect():
 @socketio.event
 def host_list(message):
     if message["data"] == "get_hosts":
-        lHOST = connect_to_db().list_collection_names()
+        lHOST = connect_to_db(MONGO_DATA_DB).list_collection_names()
         socketio.emit('actualize_host_list', {'hosts':lHOST})
 
 @socketio.event
@@ -69,15 +112,15 @@ def background_thread():
         socketio.sleep(2)
 
 #DataBase Management
-def connect_to_db():
-    client = MongoClient("mongodb://127.0.0.1:27017/")
-    return client["test"]
+def connect_to_db(db):
+    client = MongoClient(MONGO_DIR)
+    return client[db]
 
 def get_hosts_list():
-    return connect_to_db().list_collection_names()
+    return connect_to_db(MONGO_DATA_DB).list_collection_names()
 
 def get_process_list():
-    c = connect_to_db()[display_info.get('current_host')]
+    c = connect_to_db(MONGO_DATA_DB)[display_info.get('current_host')]
     data = c.find({},{"_id": 0})
     readed_data = {}
     for d in data:
@@ -96,9 +139,8 @@ def get_process_list():
     return list_of_pid, list_of_procnames
 
 def get_plot_data():
-    print(display_info)
     if display_info.get('current_host') != None:
-        c = connect_to_db()[display_info.get('current_host')]
+        c = connect_to_db(MONGO_DATA_DB)[display_info.get('current_host')]
 
         #data = c.find({},{"_id": 0})
         data = reversed(list(c.find({},{"_id": 0}).sort({"_id": -1}).limit(100)))

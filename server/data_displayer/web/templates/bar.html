@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+	<title>Dashboard</title>
 	<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
 	<script src="https://cdn.socket.io/4.7.2/socket.io.min.js" integrity="sha384-mZLF4UVrpi/QTWPA7BjNPEnkIfRFn4ZEO3Qt/HFklTJBj/gBOV8G3HcKn4NfQblz" crossorigin="anonymous"></script>
@@ -9,7 +10,7 @@
 	<body>
 		<div class="topnav">
 			<a class="active" href="#dashboard">Dashboard</a>
-			<a href="#logout">Logout</a>
+			<a href="/logout">Logout</a>
 		</div>
 		
 		<div id="Hosts" class="sidebar">
@@ -22,11 +23,6 @@
 		<div id="plotRAM" class="plotRAM"></div>
 		<div id="plotRDISK" class="plotRDISK"></div>
 		<div id="plotWDISK" class="plotWDISK"></div>
-
-		<!-- <div id="Hosts" style="width:100%;max-width:700px">
-			<ul id="hostList">
-			</ul>
-		</div>-->
 	</body>
 </html>
 

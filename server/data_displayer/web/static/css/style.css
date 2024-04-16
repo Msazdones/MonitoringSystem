@@ -22,14 +22,14 @@ body
 
 .topnav a:hover 
 {
-    background-color: #ddd;
+    background-color: #4CAF50;
     color: black;
 }
 
 .topnav a.active 
 {
     background-color: #A9A9A9;
-    color: white;
+    color: green;
 }
 
 .sidebar 
@@ -119,4 +119,9 @@ body
     margin-left: 1150px;
     width:100%;
     max-width:700px;
+}
+
+.sectionhead
+{
+    color: green;
 }
