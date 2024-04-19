@@ -1,12 +1,12 @@
 var donotclosemenu = false;
 var currentproc = null;
-function plot(yArray, xArray, xlimits, ylimits, selmode, ytitle, plottitle, plotid)
+function plot(yArray, xArray, xlimits, ylimits, selmode, ytitle, plottitle, plotid, color)
 {
     // Define Data
-    const data = [{x: xArray, y: yArray, mode:selmode}];
+    const data = [{x: xArray, y: yArray, type:selmode}];
     
     // Define Layout
-    const layout = {xaxis: {range: xlimits, title: "Time"}, yaxis: {range: ylimits, title: ytitle},   title: plottitle};
+    const layout = {xaxis: {range: xlimits, title: "Time"}, yaxis: {range: ylimits, title: ytitle},   title: plottitle, colorway:[color]};
 
     // Display using Plotly
     Plotly.newPlot(plotid, data, layout);
@@ -20,10 +20,10 @@ $(document).ready(function(){
 
     socket.on('actualize_plots', function(msg, cb) { 
         //console.log("Active" , active)
-        plot(msg.CPU_data, msg.time, msg.time_limit, msg.pc_limit, "lines", "Percentage", "CPU Usage", "plotCPU");
-        plot(msg.RAM_data, msg.time, msg.time_limit, msg.pc_limit, "lines", "Percentage", "RAM Usage", "plotRAM");
-        plot(msg.RDISK_data, msg.time, msg.time_limit, msg.rd_limit, "lines", "Mega Bytes", "Disk Reading Usage", "plotRDISK");
-        plot(msg.WDISK_data, msg.time, msg.time_limit, msg.wd_limit, "lines", "Mega Bytes", "Disk Writing Usage", "plotWDISK");
+        plot(msg.CPU_data, msg.time, msg.time_limit, msg.pc_limit, "lines", "Percentage", "CPU Usage", "plotCPU", "#FF0101");
+        plot(msg.RAM_data, msg.time, msg.time_limit, msg.pc_limit, "lines", "Percentage", "RAM Usage", "plotRAM", "#0118FF");
+        plot(msg.RDISK_data, msg.time, msg.time_limit, msg.rd_limit, "bar", "Mega Bytes", "Disk Reading Usage", "plotRDISK", "#E6C700");
+        plot(msg.WDISK_data, msg.time, msg.time_limit, msg.wd_limit, "bar", "Mega Bytes", "Disk Writing Usage", "plotWDISK", "#00B020");
        
         socket.emit('host_list', {data: 'get_hosts'});
     });
@@ -37,7 +37,7 @@ $(document).ready(function(){
         new_host_list = msg.hosts.filter(n => !current_host_list.includes(n))
 
         $.each(new_host_list, function(i, val) {
-            $('#hostList').append("<li id='h_" + i + "' class='h_" + i + "'>" + val + "<ul id='procList_h_" + i + "' class='list-off'></ul></li>");
+            $('#hostList').append("<li id='h_" + i + "' class='h_" + i + "'>" + val + "<ul id='procList_h_" + i + "''></ul></li>");
         });
     });
 
@@ -56,36 +56,41 @@ $(document).ready(function(){
             $(listid).append("<li id='p_" + i + "' class='unselectechilds'>" + val + "</li>");
         });
         
-        $(listid).attr("class", "list-on");
     });
 
     $('#hostList').on("click", "li", function(event){
         var parentid = "#" + $(this).parent().attr("id")
         var rmidlist = []
         var idtorm
+        var curclick = $(this).attr("id")
 
         if(parentid == "#hostList")
         {
             if(!donotclosemenu)
             {
-                if($("ul", this).attr("class") == "list-on")
+                if($(this).hasClass("liselected"))
                 {
-                    $("ul", this).attr("class", "list-off");
                     $(this).removeClass("liselected");
                 }
-                else if($("ul", this).attr("class") == "list-off")
-                {
+                else
+                {   
                     socket.emit('selected_host', {data: $(this).text(), eid: $(this).attr("id")});
                     $(this).addClass("liselected");
                 }
-
+                
                 $.each($(parentid).find("li"), function(){
                     rmidlist.push($(this).attr("id"));
                 }); 
-                
+                console.log(rmidlist)
                 $.each(rmidlist, function(i, val) {
-                    idtorm = "#" + val + " ul"
-                    $(idtorm).attr("class", "list-off");
+                    id = "#" + val
+                    idtorm = id + " ul"
+
+                    if(val != curclick)
+                    {
+                        $("#" + val).removeClass("liselected");
+                    }
+                    
                     $(idtorm).empty();
                 });  
             }
@@ -107,9 +112,20 @@ $(document).ready(function(){
                 currentproc = $(this)
             }
             socket.emit('selected_proc', {data: $(this).text(), eid: $(this).attr("id")});
+            $('.selproc h2').text($(this).text())
+
             donotclosemenu = true;
             currentproc.removeClass("unselectechilds");
             $(this).addClass("liselected");
         }
+    });
+
+    $("#searchInputField").on("input", function() {
+        var searchTerms = $(this).val().toLowerCase();
+        $(".hostList li").each(function() {
+          var hasMatch = searchTerms.length == 0 || $(this).text().toLowerCase().indexOf(searchTerms) >= 0;
+          var listItem = $(this);
+          listItem.toggle(hasMatch);
+        });
     });
 });

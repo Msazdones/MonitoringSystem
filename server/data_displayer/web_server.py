@@ -31,6 +31,7 @@ thread_lock = Lock()
 manager = mp.Manager()
 display_info = manager.dict()
 
+@app.route('/')
 @app.route('/dashboard')
 def plots():
     if 'logged_in' not in session:
@@ -91,7 +92,7 @@ def selected_host(message):
     lPID, lPROCNAME = get_process_list()
     lPROCINFO = ["Pid: " + lPID[i] + " - ProcName: " + lPROCNAME[i] for i in range(0,len(lPID))]
 
-    display_info.update({'current_proc_name' : lPROCNAME[0], 'current_proc_pid' : lPID[0]})
+    display_info.update({'current_proc_name' : lPROCNAME[0], 'current_proc_pid' : lPID[0], 'hid' : message["eid"]})
     socketio.emit('actualize_proc_list', {'proc_list':lPROCINFO, 'eid':message["eid"]})
 
 @socketio.event
@@ -106,10 +107,21 @@ def background_thread():
     """Example of how to send server generated events to clients."""
     time_data = list(range(0,101))
     while True:
-        print("Sending")   
-        lCPU, lRAM, lRDISK, lWDISK, time_limit, pclimit, rdlimit, wdlimit = get_plot_data()
-        socketio.emit('actualize_plots', {'time': time_data, 'CPU_data': lCPU, 'RAM_data' : lRAM, 'RDISK_data' : lRDISK, 'WDISK_data' : lWDISK, 'time_limit': time_limit, 'percent_limit' : pclimit, 'rd_limit' : rdlimit, 'wdlimit' : wdlimit})
-        socketio.sleep(2)
+        print("Sending")  
+
+        lHOST = connect_to_db(MONGO_DATA_DB).list_collection_names()
+        socketio.emit('actualize_host_list', {'hosts':lHOST})
+
+        if 'current_host' in display_info: 
+            lPID, lPROCNAME = get_process_list()
+            lPROCINFO = ["Pid: " + lPID[i] + " - ProcName: " + lPROCNAME[i] for i in range(0,len(lPID))]
+            socketio.emit('actualize_proc_list', {'proc_list':lPROCINFO, 'eid':display_info["hid"]})
+        
+            if 'current_proc_name' in display_info:
+                lCPU, lRAM, lRDISK, lWDISK, time_limit, pclimit, rdlimit, wdlimit = get_plot_data()
+                socketio.emit('actualize_plots', {'time': time_data, 'CPU_data': lCPU, 'RAM_data' : lRAM, 'RDISK_data' : lRDISK, 'WDISK_data' : lWDISK, 'time_limit': time_limit, 'percent_limit' : pclimit, 'rd_limit' : rdlimit, 'wdlimit' : wdlimit})
+
+        socketio.sleep(1)
 
 #DataBase Management
 def connect_to_db(db):
