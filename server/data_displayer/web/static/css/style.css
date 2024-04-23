@@ -129,7 +129,10 @@ body
 }
 
 .selproc
-{
+{   
+    height: 80px;
     text-align: center;
-    background-color: #A9A9A9;;
+    background-color: #A9A9A9;
+    max-height: 80px;
+    overflow: auto;
 }
