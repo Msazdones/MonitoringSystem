@@ -21,7 +21,7 @@ def_output_model_svm_dir = def_output_model_dir + "svm/"
 csv_headers = "DATETIME,CPU,RAM,RDISK,WDISK,TOTALTIME"
 
 path_to_svm_binary = "./learning_and_detection/sourcecode/SVM_profilerstandaloneApplication/SVM_profiler"
-path_to_iforest_binary = "./learning_and_detection/iforest_profilerstandaloneApplication/iforest_profiler"
+path_to_iforest_binary = "./learning_and_detection/sourcecode/iforest_profilerstandaloneApplication/iforest_profiler"
 
 #detector configuration
 models_directory = "./learning_and_detection/models/"

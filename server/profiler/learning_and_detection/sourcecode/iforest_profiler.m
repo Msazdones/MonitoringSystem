@@ -1,5 +1,4 @@
-
-function SVMModel = SVM_profiler(name, output_dir)
+function iforestModel = iforest_profiler(name, output_dir)
     opts = detectImportOptions(name);
     
     rawprdata = readtable(name, opts);
@@ -8,14 +7,14 @@ function SVMModel = SVM_profiler(name, output_dir)
 
     rawprdata = rmmissing(rawprdata);
     
-    SVMModel = ocsvm(rawprdata, StandardizeData=true,KernelScale="auto");
+    iforestModel = iforest(rawprdata);
 
     path = strsplit(name, "/");
-    savepath = strcat(output_dir, "SVMtrainedModel_");
+    savepath = strcat(output_dir, "iforesttrainedModel_");
     savepath = strcat(savepath, path(length(path)));
     [p,f]=fileparts(savepath);
     savepath = fullfile(p,f);
     
-    saveLearnerForCoder(SVMModel, savepath)
+    saveLearnerForCoder(iforestModel, savepath)
     %./run_profiler.sh "/usr/local/MATLAB/R2023b/" "../dat_files/(code)_2557.csv"
 end

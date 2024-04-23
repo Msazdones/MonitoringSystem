@@ -8,7 +8,7 @@ def train_model_matlab(config):
 
     if(config["alg"] == "svm"):
         binary = cfg.path_to_svm_binary
-    elif(config["alg"] == "svm"):
+    elif(config["alg"] == "iforest"):
         binary = cfg.path_to_iforest_binary
     
     for i in config["input_data"]:
