@@ -32,6 +32,10 @@ data_output_dir = "/output/"
 
 path_to_detector_binary = "./learning_and_detection/sourcecode/SVM_detect_anomaliesstandaloneApplication/SVM_detect_anomalies"
 
+#log
+LOG_HEADERS = "State,Datetime,AnomalyScore,AnomalyState,PID,Algorithm,DataDatetime,CPU(%),RAM(%),RDISK(Bytes),WDISK(Bytes),TOTALTIME(s)\n"
+log_route = "./learning_and_detection/log/"
+
 #auxiliary
 DATABASE_DIR = "mongodb://127.0.0.1:27017/"
 DATABASE_DB = "test"

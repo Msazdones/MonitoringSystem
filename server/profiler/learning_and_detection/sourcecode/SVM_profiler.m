@@ -1,15 +1,13 @@
 
-function SVMModel = SVM_profiler(name, output_dir)
+function SVMModel = SVM_profiler(name, columns, output_dir)
     opts = detectImportOptions(name);
+    tabcontent = readtable(name, opts);
     
-    rawprdata = readtable(name, opts);
-    rawprdata.DATETIME=[];
-    rawprdata.TOTALTIME=[];
+    training_cols = split(columns, ",");
+    rawprdata = tabcontent(:,training_cols);
 
     rawprdata = rmmissing(rawprdata);
-    
-    SVMModel = ocsvm(rawprdata, StandardizeData=true,KernelScale="auto");
-
+    SVMModel = fitcsvm(rawprdata, ones(height(rawprdata), 1), Standardize=true, KernelScale="auto", OutlierFraction=0);
     path = strsplit(name, "/");
     savepath = strcat(output_dir, "SVMtrainedModel_");
     savepath = strcat(savepath, path(length(path)));

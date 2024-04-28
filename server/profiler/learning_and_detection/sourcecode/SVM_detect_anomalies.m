@@ -1,36 +1,36 @@
-function detection_matrix = SVM_detect_anomalies(Model_name, numberofclients, period)
+function detection_matrix = SVM_detect_anomalies(Model_name, algorithm, columns, period)
     Model_name = strrep(Model_name, "'", "");
     Model = loadLearnerForCoder(Model_name);
     
-    %columns = ["DATETIME" "CPU" "RAM" "RDISK" "WDISK" "TOTALTIME"];
-    columns = ["CPU" "RAM","RDISK" "WDISK" ];
-
+    detection_cols = split(columns, ",");
     period = str2double(period);
 
     client = tcpclient("localhost",6112, "Timeout", period);
     
-    numberofclients = str2double(numberofclients);
-    
     pause on
     
     while true
-        for ci = 1 : numberofclients
-            data = read(client,client.NumBytesAvailable,"string");
+        data = read(client,client.NumBytesAvailable,"string");
+        
+        if ~isempty(data)
+            data = str2double(split(splitlines(data), ","));
+            datetime = data(:,1);
+            data = data(:,2:width(data));
+            rawprdata = array2table(data, 'VariableNames', detection_cols);
+            rawprdata = rmmissing(rawprdata);
             
-            if ~isempty(data)
-                data = str2double(split(splitlines(data), ","));
-                %rawprdata = table(data(:,1), data(:,2), data(:,3), data(:,4), data(:,5), data(:,6), 'VariableNames', columns);
-                data
-                datetime = data(:,1);
-                rawprdata = table(data(:,2), data(:,3), data(:,4), data(:,5), 'VariableNames', columns);
-                rawprdata = rmmissing(rawprdata);
-                rawprdata
+            if algorithm == "svm"
+                [~, anomaly_score] = predict(Model, rawprdata);
+                anomaly_status = anomaly_score < 0;
+            else
                 [anomaly_status, anomaly_score] = isanomaly(Model, rawprdata);
-                detection_matrix = num2str([datetime' anomaly_score' anomaly_status']);
-                
-                write(client, num2str(strlength(detection_matrix)), "string")
-                write(client, detection_matrix, "string")
             end
+            
+            detection_matrix = num2str([datetime' anomaly_score' anomaly_status']);
+            write(client, num2str(strlength(detection_matrix)), "string")
+            write(client, detection_matrix, "string")
+       
+
         end
         pause(period);
     end

@@ -1,30 +1,32 @@
 import config as cfg
-import chardet 
 
 def parse_file_to_detection(config, conn):
+    host = config["clients"]
+    rawdata = reversed(list(conn[host].find({},{"_id": 0}).sort({"_id": -1}).limit(config["samples"])))
 
-    for host in config["clients"]:
-        rawdata = reversed(list(conn[host].find({},{"_id": 0}).sort({"_id": -1}).limit(config["samples"])))
+    data = {}
+    for d in rawdata:
+        data.update(d)
 
-        data = {}
-        for d in rawdata:
-            data.update(d)
+    dates = list(data.keys())
 
-        dates = list(data.keys())
+    if(len(dates) == 0):
+        return {}
 
-        if(len(dates) == 0):
-            continue
+    pid_lists = {}
+    for k in dates:
+        for p in data[k]:
+            if(p["name"] == config["pr_target"]):
+                if(p["pid"] not in pid_lists):
+                    pid_lists.update({p["pid"] : ""})
 
-        pid_lists = {}
-        for k in dates:
-            for p in data[k]:
-                if(p["name"] == config["pr_target"]):
-                    if(p["pid"] not in pid_lists):
-                        pid_lists.update({p["pid"] : ""})
-
-                    timestamp = str(int(cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S").timestamp()))
-                    csv_info = timestamp + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
-                    pid_lists.update({p["pid"] : pid_lists[p["pid"]] + csv_info})             
+                timestamp = str(int(cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S").timestamp()))
+                csv_info = timestamp 
+                for c in config["datatype"]:
+                    csv_info = csv_info + "," +  str(p[c])
+                
+                csv_info = csv_info + "\n"
+                pid_lists.update({p["pid"] : pid_lists[p["pid"]] + csv_info})             
     
     return pid_lists
 
@@ -39,38 +41,48 @@ def launch_detector_matlab(config):
     execution = 'eval ' + \
             '"' + binary +\
             '" "' + config["model"] +\
-            '" "' + str(len(config["clients"])) +\
+            '" "' + config["alg"] +\
+            '" "' + ",".join(config["datatype"]) +\
             '" "' + str(config["period"]) + '"'
 
     print(execution)
     proceso = cfg.subprocess.Popen(execution, shell=True)
 
-def log_detection_results(samples, pids, rdata):
-        ts = []
-        rt = []
-        st = []
+def log_detection_results(rdata, procinfo, alg, logfile):
+        lf = open(logfile, "a")
 
-        for i in range(0, len(pids)):
-            ll = samples * i
-            hl = samples * (i + 1)
-            ts.append(rdata[ll:hl])
+        pids = list(procinfo.keys())    
+        gl  = sum([len(procinfo[i].split("\n"))-1 for i in procinfo.keys()])
 
-            ll = samples * (i + len(pids))
-            hl = samples * (i + len(pids) + 1)
-            rt.append(rdata[ll:hl])
+        ts = rdata[0:gl]
+        rt = rdata[gl:2*gl]
+        st = rdata[2*gl:3*gl]
 
-            ll = samples * (i + (len(pids) * 2))
-            hl = samples * (i + (len(pids) * 2) + 1)
-            st.append(rdata[ll:hl])
-        
-        for i in range(0, len(pids)):
-            print(pids[i])
-            for j in range(0, len(st[i])):
-                if st[i][j] == '1':
-                    print("Alerta, positivo:", ts[i][j], rt[i][j], st[i][j])
+        lsamp = 0
+        for i in range(0,len(pids)):
+            samp = len(procinfo[pids[i]].split("\n"))-1
+            pi = procinfo[pids[i]].split("\n")
+            for j in range(0,samp):
+                
+                if st[j+lsamp] == '1':
+                    log_line = "Positivo,"
                 else:
-                    print("Todo chill", ts[i][j], rt[i][j], st[i][j])
+                    log_line = "Negativo,"
+
+                log_line = log_line + ts[j+lsamp] + "," + rt[j+lsamp] + "," + st[j+lsamp] + "," + pids[i] + "," + alg + "," + pi[j] + "\n"
+                print(log_line)
+                lf.write(log_line)
+        
         print("----------------------------------------------------------------")
+        lf.close()
+
+def create_log_file(pr_name):
+    filename = cfg.log_route + pr_name + "_" + cfg.datetime.today().strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
+    f = open(filename, "a")
+    f.write(cfg.LOG_HEADERS)
+    f.close()
+    
+    return filename
 
 def detection(config, conn):
     ssocket = cfg.socket.socket(cfg.socket.AF_INET, cfg.socket.SOCK_STREAM)
@@ -81,11 +93,13 @@ def detection(config, conn):
 
     sclient, client_address = ssocket.accept()
 
+    logfile = create_log_file(config["pr_target"])
+
     while True:
         cd = parse_file_to_detection(config, conn)
         pids = list(cd.keys())
         
-        if len(pids) != 0:
+        if len(pids) != 0 or cd == {}:
             payload = ""
             for k in pids:
                 payload = payload + cd[k]
@@ -96,7 +110,7 @@ def detection(config, conn):
             rdata = sclient.recv(int(s.decode()), cfg.socket.MSG_WAITALL)
             rdata = list(filter(None, rdata.decode().split(" ")))
             
-            log_detection_results(config["samples"], pids, rdata)
+            log_detection_results(rdata, cd, config["alg"], logfile)
 
         else:
             print("De momento no hay muestras.")
@@ -157,24 +171,35 @@ def menu():
             cfg.aux.print_options(clients)
 
             print("\n")
-            opt_m2 = input("Choose one or more, separated by space (integer 0-" + str(len(clients)-1) + ", or type all for all the clients): ")
+            opt_m2 = input("Choose one client (integer 0-" + str(len(clients)-1) + "): ")
             
-            if(opt_m2 == "all"):
-                client_target = clients
-            
-            elif(cfg.aux.check_numeric_input(opt_m2, 0, len(clients)-1)):
-                client_target=[]
-                
-                for i in opt_m2:
-                    client_target.append(clients[int(i)])
-            
-            else:
+            if(not cfg.aux.check_numeric_input(opt_m2, 0, len(clients)-1)):
                 print("Bad input. Try again.")
                 print("\n")
-                continue  
+                continue       
+
             
-            launcher_config.update({"clients" : client_target})
+            launcher_config.update({"clients" : clients[int(opt_m2)]})
             
+            opt_m2 = input("Now select what type(s) of data you want to use for training, one or more separated by space (CPU, RAM, RDISK, WDISK or all): ")
+            print("\n")
+
+            if(opt_m2 == "all"):
+                launcher_config.update({"datatype" : ["CPU", "RAM", "RDISK", "WDISK"]})
+            else:
+                dt = opt_m2.split(" ")
+                status = True
+                for d in dt:
+                    if d not in ["CPU", "RAM", "RDISK", "WDISK"]:
+                        status = False
+                        break
+                if status == False:
+                    print("Bad input. Try again.")
+                    print("\n")
+                    continue
+                else: 
+                    launcher_config.update({"datatype" : dt})
+
             print("\n")
             opt_m2 = input("Now select the amount of samples the you want to use as observations each iteration, starting from the last record (integer): ")
             

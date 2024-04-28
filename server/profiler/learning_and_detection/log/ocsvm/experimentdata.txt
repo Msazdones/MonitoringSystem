@@ -1,0 +1,12 @@
+probabilidad de falso positivo: 
+	muestras: 8922
+	muestras de todos los procesos: 19913
+	probabilidad: 0.9992969063881076 ((19913 - 14)/19913)
+	algoritmo: svm
+
+probabilidad de detección: 
+	muestras: 
+	muestras de todos los procesos: 
+	probabilidad: 
+	algoritmo: svm
+	target pid: 13471

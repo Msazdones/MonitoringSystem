@@ -1,7 +1,6 @@
 import config as cfg
 
 def train_model_matlab(config):
-    
     cfg.os.environ["LD_LIBRARY_PATH"] = ""
     for d in cfg.matlab_dependencies:
         cfg.os.environ["LD_LIBRARY_PATH"] += cfg.matlab_dependencies_root + d + cfg.os.pathsep
@@ -12,7 +11,7 @@ def train_model_matlab(config):
         binary = cfg.path_to_iforest_binary
     
     for i in config["input_data"]:
-        execution = 'eval ' + '"' + binary + '"' + ' "' + config["input_dir"] + i + '" "' + config["output_dir"] + '"'
+        execution = 'eval ' + '"' + binary + '"' + ' "' + config["input_dir"] + i + '" "' + ",".join(config["datatype"]) + '" "' + config["output_dir"] + '"'
         print(execution)
         cfg.os.system(execution)
 
@@ -81,7 +80,7 @@ def menu():
             parse_config.update({"clients" : clients})
 
             while True:
-                print("You want to parse the data from de database, you are now connected. Choose your option:")
+                print("You want to parse the data from the database, you are now connected. Choose your option:")
                 print("     1. Configure and start process.")
                 print("     2. Check current configuration.")
                 print("     3. Start process.")
@@ -138,7 +137,7 @@ def menu():
                         continue  
 
                     print("\n")
-                    opt_m2 = input("Now select the step that you want to de decimating process (1 = None) (integer, or press intro for default (" + str(cfg.def_step) + ")): ")
+                    opt_m2 = input("Now select the step that you want to the decimating process (1 = None) (integer, or press intro for default (" + str(cfg.def_step) + ")): ")
 
                     if(opt_m2 == ''):
                         parse_config.update({"step" : cfg.def_step})
@@ -264,6 +263,26 @@ def menu():
                                 continue
                                 
                     training_config.update({"input_data" : target_files})
+                    print("\n")
+                    
+                    opt_m2 = input("Now select what type(s) of data you want to use for training, one or more separated by space (CPU, RAM, RDISK, WDISK or all): ")
+                    
+                    if(opt_m2 == "all"):
+                        training_config.update({"datatype" : ["CPU", "RAM", "RDISK", "WDISK"]})
+                    else:
+                        dt = opt_m2.split(" ")
+                        status = True
+                        for d in dt:
+                            if d not in ["CPU", "RAM", "RDISK", "WDISK"]:
+                                status = False
+                                break
+                        if status == False:
+                            print("Bad input. Try again.")
+                            print("\n")
+                            continue
+                        else: 
+                            training_config.update({"datatype" : dt})
+
                     print("\n")
                     opt_m2 = input("Now select the output directory (press intro for default (" + str(cfg.def_output_model_dir) + training_config["alg"] + ")): ")
 

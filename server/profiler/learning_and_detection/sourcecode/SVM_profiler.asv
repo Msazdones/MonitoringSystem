@@ -1,0 +1,30 @@
+
+function [SVMModel, rprd] = SVM_profiler(name, columns, output_dir)
+    opts = detectImportOptions(name);
+    rawprdata = readtable(name, opts);
+    
+    training_cols = split(columns, ",")
+    
+    for c = 1:length(training_cols)
+        training_cols{c}
+    end
+
+    %rawprdata = readtable(name, opts);
+    %rawprdata.DATETIME=[];
+    %rawprdata.TOTALTIME=[];
+    %rawprdata.RDISK=[];
+    %rawprdata.WDISK=[];
+
+    %rawprdata = rmmissing(rawprdata);
+    %height(rawprdata)
+    %SVMModel = fitcsvm(rawprdata, ones(height(rawprdata), 1), Standardize=true, KernelScale="auto", OutlierFraction=0);
+    %rprd = rawprdata;
+    %path = strsplit(name, "/");
+    %savepath = strcat(output_dir, "SVMtrainedModel_");
+    %savepath = strcat(savepath, path(length(path)));
+    %[p,f]=fileparts(savepath);
+    %savepath = fullfile(p,f);
+    
+    %saveLearnerForCoder(SVMModel, savepath)
+    %./run_profiler.sh "/usr/local/MATLAB/R2023b/" "../dat_files/(code)_2557.csv"
+end

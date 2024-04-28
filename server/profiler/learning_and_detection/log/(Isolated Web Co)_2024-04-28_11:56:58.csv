@@ -1,0 +1,1 @@
+State,Datetime,AnomalyScore,AnomalyState,PID,Algorithm,DataDatetime,CPU(%),RAM(%),RDISK(Bytes),WDISK(Bytes),TOTALTIME(s)
