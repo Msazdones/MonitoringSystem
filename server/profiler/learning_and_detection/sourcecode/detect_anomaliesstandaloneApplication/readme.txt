@@ -1,4 +1,4 @@
-iforest_profiler Executable
+detect_anomalies Executable
 
 1. Prerequisites for Deployment 
 
@@ -23,12 +23,12 @@ in the MathWorks Documentation Center.
 
 Files to Package for Standalone 
 ================================
--iforest_profiler 
--run_iforest_profiler.sh (shell script for temporarily setting environment variables and 
+-detect_anomalies 
+-run_detect_anomalies.sh (shell script for temporarily setting environment variables and 
                           executing the application)
    -to run the shell script, type
    
-       ./run_iforest_profiler.sh <mcr_directory> <argument_list>
+       ./run_detect_anomalies.sh <mcr_directory> <argument_list>
        
     at Linux or Mac command prompt. <mcr_directory> is the directory 
     where MATLAB Runtime(R2023b) is installed or the directory where 
@@ -38,12 +38,12 @@ Files to Package for Standalone
     If you have MATLAB Runtime(R2023b) installed in 
     /mathworks/home/application/R2023b, run the shell script as:
     
-       ./run_iforest_profiler.sh /mathworks/home/application/R2023b
+       ./run_detect_anomalies.sh /mathworks/home/application/R2023b
        
     If you have MATLAB installed in /mathworks/devel/application/matlab, 
     run the shell script as:
     
-       ./run_iforest_profiler.sh /mathworks/devel/application/matlab
+       ./run_detect_anomalies.sh /mathworks/devel/application/matlab
 -MCRInstaller.zip
     Note: if end users are unable to download the MATLAB Runtime using the
     instructions in the previous section, include it when building your 
@@ -92,7 +92,7 @@ ${LD_LIBRARY_PATH}:MR/R2023b/runtime/glnxa64:MR/R2023b/bin/glnxa64:MR/R2023b/sys
         NOTE: The environment variable syntax utilizes forward 
               slashes (/), delimited by colons (:).  
         NOTE: When deploying standalone applications, you can
-              run the shell script file run_iforest_profiler.sh 
+              run the shell script file run_detect_anomalies.sh 
               instead of setting environment variables. See 
               section 2 "Files to Deploy and Package".    
 

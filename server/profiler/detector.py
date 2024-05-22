@@ -28,6 +28,7 @@ def parse_file_to_detection(config, conn):
                 csv_info = csv_info + "\n"
                 pid_lists.update({p["pid"] : pid_lists[p["pid"]] + csv_info})             
     
+    print(pid_lists)
     return pid_lists
 
 
@@ -99,7 +100,7 @@ def detection(config, conn):
         cd = parse_file_to_detection(config, conn)
         pids = list(cd.keys())
         
-        if len(pids) != 0 or cd == {}:
+        if len(pids) != 0 and cd != {}:
             payload = ""
             for k in pids:
                 payload = payload + cd[k]

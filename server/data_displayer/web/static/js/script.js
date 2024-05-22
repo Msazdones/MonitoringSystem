@@ -6,7 +6,10 @@ function plot(yArray, xArray, xlimits, ylimits, selmode, ytitle, plottitle, plot
     const data = [{x: xArray, y: yArray, type:selmode}];
     
     // Define Layout
-    const layout = {xaxis: {range: xlimits, title: "Time"}, yaxis: {range: ylimits, title: ytitle},   title: plottitle, colorway:[color]};
+    const layout = {xaxis: {range: xlimits, title: "Time"}, yaxis: {range: ylimits, title: ytitle},   title: plottitle, colorway:[color], paper_bgcolor: "rgba(241,226,251,0)", plot_bgcolor: "rgba(241,226,251,0)"};
+
+    //paper_bgcolor: "rgba(0,0,0,0", //background color of the chart container space
+    //plot_bgcolor: "rgba(0,0,0,0)", //background color of plot area
 
     // Display using Plotly
     Plotly.newPlot(plotid, data, layout);

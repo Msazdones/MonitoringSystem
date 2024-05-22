@@ -20,8 +20,7 @@ def_output_model_dir = "./learning_and_detection/models/"
 def_output_model_svm_dir = def_output_model_dir + "svm/"
 csv_headers = "DATETIME,CPU,RAM,RDISK,WDISK,TOTALTIME"
 
-path_to_svm_binary = "./learning_and_detection/sourcecode/SVM_profilerstandaloneApplication/SVM_profiler"
-path_to_iforest_binary = "./learning_and_detection/sourcecode/iforest_profilerstandaloneApplication/iforest_profiler"
+path_to_training_binary = "./learning_and_detection/sourcecode/profilerstandaloneApplication/profiler"
 
 #detector configuration
 models_directory = "./learning_and_detection/models/"
@@ -30,7 +29,7 @@ detection_data_dir = "./learning_and_detection/detection_info/"
 data_input_dir = "/input/"
 data_output_dir = "/output/"
 
-path_to_detector_binary = "./learning_and_detection/sourcecode/SVM_detect_anomaliesstandaloneApplication/SVM_detect_anomalies"
+path_to_detector_binary = "./learning_and_detection/sourcecode/detect_anomaliesstandaloneApplication/detect_anomalies"
 
 #log
 LOG_HEADERS = "State,Datetime,AnomalyScore,AnomalyState,PID,Algorithm,DataDatetime,CPU(%),RAM(%),RDISK(Bytes),WDISK(Bytes),TOTALTIME(s)\n"

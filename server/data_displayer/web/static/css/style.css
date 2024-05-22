@@ -7,7 +7,7 @@ body
 .topnav 
 {
     overflow: hidden;
-    background-color: #333;
+    background-color: #190035;
     height: 45px;
 }
 
@@ -23,21 +23,22 @@ body
 
 .topnav a:hover 
 {
-    background-color: #4CAF50;
+    background-color: #C9D20A;
     color: black;
 }
 
 .topnav a.active 
 {
-    background-color: #A9A9A9;
-    color: green;
+    background-color: #342240;
+    color: #C9D20A;
 }
 
 .sidebar 
 {
     margin: 0;
     padding: 20px;
-    background-color: #A9A9A9;
+    background-color: #342240;
+    color: white;
     position: fixed;
     height: 100%;
     overflow-y: auto;
@@ -70,27 +71,27 @@ body
 
 #hostList li:hover:not(:has(li:hover)) 
 {
-    color: whitesmoke;
+    color: #C9D20A;
 }
 
 #hostList > li:hover > *:not(:hover) 
 {
-    color: black;
+    color: white;
 }
 
 .liselected
 {
-    color: green;
+    color:  #6CFC70;
 }
 
 .liselected::marker
 {
-    color: green;
+    color: #6CFC70;
 }
 
 .unselectechilds
 {
-    color:black;
+    color:white;
 }
 
 .plotCPU 
@@ -125,14 +126,35 @@ body
 
 .sectionhead
 {
-    color: green;
+    color: #C9D20A;
 }
 
 .selproc
 {   
     height: 80px;
     text-align: center;
-    background-color: #A9A9A9;
+    background-color: #342240;
     max-height: 80px;
     overflow: auto;
+    color: #6CFC70;
+}
+
+.searchform
+{   
+    border: 1px solid #C9D20A;
+    margin-left: 50px;
+    background-color: #654975;
+    color: #C9D20A;
+    font-size:15px;
+}
+
+.main
+{
+    background-color: #F1E2FB;
+}
+
+.footer
+{
+    background-color: #F1E2FB; 
+    height: 100px;
 }

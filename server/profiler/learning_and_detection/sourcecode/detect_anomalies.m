@@ -1,4 +1,4 @@
-function detection_matrix = SVM_detect_anomalies(Model_name, algorithm, columns, period)
+function detection_matrix = detect_anomalies(Model_name, algorithm, columns, period)
     Model_name = strrep(Model_name, "'", "");
     Model = loadLearnerForCoder(Model_name);
     
@@ -18,12 +18,11 @@ function detection_matrix = SVM_detect_anomalies(Model_name, algorithm, columns,
             data = data(:,2:width(data));
             rawprdata = array2table(data, 'VariableNames', detection_cols);
             rawprdata = rmmissing(rawprdata);
-            
             if algorithm == "svm"
                 [~, anomaly_score] = predict(Model, rawprdata);
                 anomaly_status = anomaly_score < 0;
             else
-                [anomaly_status, anomaly_score] = isanomaly(Model, rawprdata);
+                [anomaly_status, anomaly_score] = isanomaly(Model, rawprdata, ScoreThreshold=0.75);
             end
             
             detection_matrix = num2str([datetime' anomaly_score' anomaly_status']);

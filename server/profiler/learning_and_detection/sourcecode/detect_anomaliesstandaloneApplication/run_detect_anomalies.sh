@@ -30,7 +30,7 @@ else
       args="${args} \"${token}\"" 
       shift
   done
-  eval "\"${exe_dir}/SVM_profiler\"" $args
+  eval "\"${exe_dir}/detect_anomalies\"" $args
 fi
 exit
 

@@ -30,7 +30,7 @@ else
       args="${args} \"${token}\"" 
       shift
   done
-  eval "\"${exe_dir}/iforest_profiler\"" $args
+  eval "\"${exe_dir}/profiler\"" $args
 fi
 exit
 

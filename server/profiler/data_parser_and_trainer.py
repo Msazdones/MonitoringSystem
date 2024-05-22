@@ -6,12 +6,12 @@ def train_model_matlab(config):
         cfg.os.environ["LD_LIBRARY_PATH"] += cfg.matlab_dependencies_root + d + cfg.os.pathsep
 
     if(config["alg"] == "svm"):
-        binary = cfg.path_to_svm_binary
+        binary = cfg.path_to_training_binary
     elif(config["alg"] == "iforest"):
-        binary = cfg.path_to_iforest_binary
+        binary = cfg.path_to_training_binary
     
     for i in config["input_data"]:
-        execution = 'eval ' + '"' + binary + '"' + ' "' + config["input_dir"] + i + '" "' + ",".join(config["datatype"]) + '" "' + config["output_dir"] + '"'
+        execution = 'eval ' + '"' + binary + '"' + ' "' + config["input_dir"] + i + '" "' + config["alg"] + '" "' + ",".join(config["datatype"]) + '" "' + config["output_dir"] + '"'
         print(execution)
         cfg.os.system(execution)
 
