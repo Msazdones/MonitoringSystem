@@ -10,7 +10,7 @@ def data_filter(data, sys_params):
 		segmented_data = data.split("||\n")
 		
 		for i in range(0, len(segmented_data)-1):
-			fcnt = i % 3
+			fcnt = i % 4
 			if(fcnt == 0):
 				pname = cfg.re.findall("\(.*\)", segmented_data[i])[0]
 				segmented_data[i] = segmented_data[i].replace(pname + " ", "")	
@@ -27,9 +27,6 @@ def data_filter(data, sys_params):
 				d.update({"status" : segmented_file[1]})
 				d.update({"CPU" : str(result)})
 				d.update({"TOTALTIME" : str(prseconds)})
-			
-				if(pname == "(Isolated Web Co)"):
-					print(i, segmented_file[0], pname, "CPU:", str(result))
 
 			elif(fcnt == 1):
 				ram_usage = cfg.re.findall("VmRSS:.*", segmented_data[i])
@@ -39,10 +36,7 @@ def data_filter(data, sys_params):
 					ram_usage = ram_usage[0].split("\t")[1].replace(" ", "")
 					ram_usage = float(ram_usage[0:len(ram_usage)-2])
 
-				result = round(100 * (ram_usage / sys_params[1]), 2)
-				
-				if(pname == "(Isolated Web Co)"):
-					print(i, pid, pname, "RAM:", str(result))			
+				result = round(100 * (ram_usage / sys_params[1]), 2)		
 
 				d.update({"RAM" : str(result)})
 
@@ -50,9 +44,32 @@ def data_filter(data, sys_params):
 				segmented_file = segmented_data[i].split("\n")	
 
 				d.update({"RDISK" : segmented_file[0][7:len(segmented_file[0])], "WDISK" : segmented_file[1][7:len(segmented_file[1])]})
+			
+			elif(fcnt == 3):
+				sc = []
+				pt = []
+				of = []
+
+				sc = set(cfg.re.findall("socket:\[.*\]", segmented_data[i]))
+				pt = set(cfg.re.findall("/dev/pts/.*", segmented_data[i]))
+				of = set(segmented_data[i].split("\n"))
+
+				of = of - sc
+				
+				of = list(of - pt)
+
+				sc = list(sc)
+				pt = list(pt)
+				of.remove("")
+
+				d.update({"NSOCKETS" : str(len(sc))})
+				d.update({"NTERMS" : str(len(pt))})
+				d.update({"NFILES" : str(len(of))})
+
 				rdata.append(d.copy())
-		
+
 		return {date : rdata}
+	
 	except:
 		return None
 
