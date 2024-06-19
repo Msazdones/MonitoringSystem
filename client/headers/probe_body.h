@@ -11,7 +11,7 @@
 #include <ctype.h>
 #include <unistd.h> 
 
-#define BUFFER_SIZE 1500
+#define BUFFER_SIZE 2500
 #define MAX_PROCS_TO_EVAL 1000
 
 #define SLEEPTIME 2

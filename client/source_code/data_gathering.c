@@ -2,11 +2,11 @@
 
 void data_gathering(char **data)
 {
-	const char DATAFILES[3][7] = {"stat", "status", "io"};
-	char file_route[100];
-	char file_buffer[BUFFER_SIZE];
+	const char DATAFILES[4][7] = {"stat", "status", "io", "fd"};
+	char file_route[100], fdfile[100];
+	char file_buffer[BUFFER_SIZE], fdbuff[100];
 	
-	DIR *dr;
+	DIR *dr, *fddir;
 	struct dirent *en;
 	
 	int prcnt = 0, i = 0;
@@ -42,19 +42,49 @@ void data_gathering(char **data)
 				for(i = 0; i < FILES_TO_EVAL; i++)
 				{
 					memset(file_buffer,0,strlen(file_buffer));
-					
 					strcpy(file_route, PROC_DIR);
 					strcat(file_route, en->d_name);
 					strcat(file_route, "/");
 					strcat(file_route, DATAFILES[i]);
 
-					fp = fopen(file_route, "r");	
-					if(fp == NULL)
+					if(strcmp(DATAFILES[i], "fd") != 0)
 					{
-						break;
+						fp = fopen(file_route, "r");
+						
+						if(fp == NULL)
+						{
+							break;
+						}
+
+						fread(file_buffer, BUFFER_SIZE, 1, fp);
+						fclose(fp);
 					}
-					fread(file_buffer, BUFFER_SIZE, 1, fp);
-					fclose(fp);
+					else
+					{
+						fddir = opendir(file_route);
+						
+						if(fddir)
+						{	
+							while((en = readdir(fddir)) != NULL)
+							{
+								if(isNameNumber(en->d_name))
+								{
+									memset(fdfile,0,strlen(fdfile));
+									memset(fdbuff,0,strlen(fdbuff));
+
+									strcat(fdfile, file_route);
+									strcat(fdfile, "/");
+									strcat(fdfile, en->d_name);
+
+									readlink(fdfile, fdbuff, 100);
+									
+									strcat(file_buffer, fdbuff);
+									strcat(file_buffer, "\n");
+								}
+							}
+						}
+						closedir(fddir);
+					}
 					strcat((*data), file_buffer);
 					strcat((*data), "||\n");
 				}	
