@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from itertools import islice
+from itertools import product
 import os
 import sys 
 import time
@@ -9,16 +10,24 @@ import time
 import subprocess
 import socket
 import numpy as np
+import statistics as st
+import pandas as pd
+from sklearn import preprocessing, svm
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
 import auxiliar_functions as aux
 
 #parser and trainer configuration
-def_data_dir = "./learning_and_detection/data_files/"
+def_normal_data_dir = "./learning_and_detection/data_files/normal_mode/" #../.
+def_advanced_data_dir = "./learning_and_detection/data_files/advanced_mode/"
 def_step = 1
 def_samples = 20
 def_output_model_dir = "./learning_and_detection/models/"
 def_output_model_svm_dir = def_output_model_dir + "svm/"
-csv_headers = "DATETIME,CPU,RAM,RDISK,WDISK,TOTALTIME"
+normal_csv_headers = "DATETIME,CPU,RAM,RDISK,WDISK,TOTALTIME"
+advanced_csv_headers = "CPU (MEAN),CPU (MEDIAN),CPU (MODE),CPU (VARIANCE),RAM (MEAN),RAM (MEDIAN),RAM (MODE),RAM (VARIANCE),RDISK (MEAN),RDISK (MEDIAN),RDISK (MODE),RDISK (VARIANCE),WDISK (MEAN),WDISK (MEDIAN),WDISK (MODE),WDISK (VARIANCE)"
+all_metrics = ["MEAN", "MEDIAN", "MODE", "VARIANCE"]
 
 path_to_training_binary = "./learning_and_detection/sourcecode/profilerstandaloneApplication/profiler"
 
@@ -42,3 +51,6 @@ DATABASE_DB = "test"
 #matlab configuration
 matlab_dependencies_root = "/usr/local/MATLAB/R2023b/"
 matlab_dependencies = ["/runtime/glnxa64", "/bin/glnxa64", "/sys/os/glnxa64", "/sys/opengl/lib/glnxa64"]
+
+#multiprocessing
+nmprocess = 2

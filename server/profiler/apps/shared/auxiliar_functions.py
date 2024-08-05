@@ -35,15 +35,44 @@ def check_float_input(f, ll, hl):
     except:
         return False
 
+
+def print_pr_options(l):
+    pr = {}
+    
+    for c in l: 
+        try:
+            p = c.split("_")
+            pname = p[0]
+            pid = p[1].replace(".csv", "")
+
+            if(pname not in pr.keys()):
+                pr.update({pname : [pid]})
+            
+            else:
+                pr[pname].append(pid)   
+        except:
+            pass
+
+    i = 0
+    
+    for c in pr.keys():
+        cadena = "(" + str(i) + ")" + c
+        print(cadena + ":", str(pr[c]))
+        i += 1
+        print()
+    
+    tpl = [(x, pr[x]) for x in pr.keys()]
+    return tpl
+
 def print_options(l):
     col = 0
     i = 0
     for c in l:
         cadena = "(" + str(i) + ") " + c
         print(cadena + " " * (60 - (len(cadena))),  end="")
-        i = i + 1
+        i += 1
         if col == 3:
             print() 
             col = 0
         else:
-            col = col + 1 
+            col += 1 

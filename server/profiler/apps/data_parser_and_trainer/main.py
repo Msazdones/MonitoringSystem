@@ -1,63 +1,13 @@
+import sys
+sys.path.append('../shared/')
+
 import config as cfg
-
-def train_model_matlab(config):
-    cfg.os.environ["LD_LIBRARY_PATH"] = ""
-    for d in cfg.matlab_dependencies:
-        cfg.os.environ["LD_LIBRARY_PATH"] += cfg.matlab_dependencies_root + d + cfg.os.pathsep
-
-    if(config["alg"] == "svm"):
-        binary = cfg.path_to_training_binary
-    elif(config["alg"] == "iforest"):
-        binary = cfg.path_to_training_binary
-    
-    for i in config["input_data"]:
-        execution = 'eval ' + '"' + binary + '"' + ' "' + config["input_dir"] + i + '" "' + config["alg"] + '" "' + ",".join(config["datatype"]) + '" "' + config["output_dir"] + '"'
-        print(execution)
-        cfg.os.system(execution)
-
-def parse_file_for_training(config, db_conn):
-    for host in config["clients"]:
-        jsondata = {}
-        dates = []
-        
-        if(config["samples"] == "all"):
-            rawdata = db_conn[host].find({},{"_id": 0})
-        else:
-            rawdata = reversed(list(db_conn[host].find({},{"_id": 0}).sort({"_id": -1}).limit(config["samples"])))
-
-        stepcnt = config["step"] - 1 #para quedarnos siempre con la primera muestra
-        cnt = 0
-        for d in rawdata:
-            cnt = cnt +1 
-            if(stepcnt == config["step"]-1): 
-                jsondata.update(d)
-                stepcnt = 0
-            else:
-                stepcnt = stepcnt + 1
-
-        dates = list(jsondata.keys())
-        if(len(dates) == 0):
-            continue
-            
-        for k in dates:
-            try:
-                for p in jsondata[k]:    
-                    timestamp = str(int(cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S").timestamp()))
-                    csv_info = timestamp + "," + str(p["CPU"]) + "," + str(p["RAM"]) + "," + str(p["RDISK"]) + "," + str(p["WDISK"]) + "," + str(p["TOTALTIME"]) + "\n"
-                    csv_file = config["output_dir"] + p["name"].replace("/", "-") + ".csv"
-                    
-                    if(not cfg.os.path.isfile(csv_file)):
-                        csv_info  = cfg.csv_headers + "\n" + csv_info
-
-                    f = open(csv_file, "a")
-                    f.write(csv_info)
-                    f.close()
-            except Exception as error:
-                print("No data structure found", error)
+import data_parser as dp
+import model_trainer as mt
 
 def menu():
-    parse_config = {"clients" : [], "samples" : cfg.def_samples, "step" : cfg.def_step, "output_dir" : cfg.def_data_dir}
-    training_config = {"alg" : "svm", "input_dir" : cfg.def_data_dir, "input_data" : "", "output_dir" : cfg.def_output_model_svm_dir}
+    parse_config = {"clients" : [], "samples" : cfg.def_samples, "step" : cfg.def_step, "output_dir" : cfg.def_normal_data_dir}
+    training_config = {"alg" : "svm", "input_dir" : cfg.def_normal_data_dir, "input_data" : "", "output_dir" : cfg.def_output_model_svm_dir}
     conn = cfg.aux.connect_to_db()
     
     while True:
@@ -151,10 +101,50 @@ def menu():
                         continue  
 
                     print("\n")
-                    opt_m2 = input("Now select the output directory (string, or press intro for default (" + cfg.def_data_dir + ")): ")
+                    opt_m2 = input("Now select the parse mode (0 = global, 1 = by process): ")
+
+                    if(cfg.aux.check_numeric_input(opt_m2, 0, 1)):
+                        parse_config.update({"mode" : int(opt_m2)})
+
+                    else:
+                        print("Bad input. Try again.")
+                        print("\n")
+                        continue
+
+                    print("\n")
+                    opt_m2 = input("Now select the parse submode (0 = classic, 1 = advanced): ")
+
+                    if(cfg.aux.check_numeric_input(opt_m2, 0, 1)):
+                        parse_config.update({"submode" : int(opt_m2)})
+                    
+                    else:
+                        print("Bad input. Try again.")
+                        print("\n")
+                        continue 
+
+                    if(parse_config["submode"] == 1):
+                        print("\n")
+                        opt_m2 = input("Now select the advanced parse interval (positive integer, in minutes): ")
+                        
+                        if(cfg.aux.check_numeric_input(opt_m2, 0, 1000000000)):
+                            parse_config.update({"interval" : int(opt_m2)})
+                        
+                        else:
+                            print("Bad input. Try again.")
+                            print("\n")
+                            continue 
+                    
+                    if(parse_config["submode"] == 0):
+                        ddir = cfg.def_normal_data_dir
+                    
+                    elif(parse_config["submode"] == 1):    
+                        ddir = cfg.def_advanced_data_dir
+                    
+                    print("\n")
+                    opt_m2 = input("Now select the output directory (string, or press intro for default (" + ddir + ")): ")
 
                     if(opt_m2 == ''):
-                        parse_config.update({"output_dir" : cfg.def_data_dir})
+                        parse_config.update({"output_dir" : ddir})
 
                     elif(cfg.os.path.isdir(opt_m2)):
                         parse_config.update({"output_dir" : opt_m2})
@@ -170,7 +160,7 @@ def menu():
                     while True:
                         opt_m2 = input("y/n: ")
                         if opt_m2 == "y":
-                            parse_file_for_training(parse_config, conn)
+                            dp.parse_file_for_training(parse_config, conn)
                             break
                         elif opt_m2 == "n":
                             break
@@ -186,7 +176,7 @@ def menu():
                     while True:
                         opt_m2 = input("y/n: ")
                         if opt_m2 == "y":
-                            parse_file_for_training(parse_config, conn)
+                            dp.parse_file_for_training(parse_config, conn)
                             break
                         elif opt_m2 == "n":
                             break
@@ -224,13 +214,30 @@ def menu():
                         print("Bad input. Try again.")
                         print("\n")
                         continue  
-
+                    
                     print("\n")
-                    opt_m2 = input("Now select the input directory (press intro for default (" + cfg.def_data_dir + ")): ")
+                    opt_m2 = input("Now select the parse mode (0 = classic, 1 = advanced): ")
+
+                    if(cfg.aux.check_numeric_input(opt_m2, 0, 1)):
+                        training_config.update({"mode" : int(opt_m2)})
+                    
+                    else:
+                        print("Bad input. Try again.")
+                        print("\n")
+                        continue 
+
+                    if(training_config["mode"] == 0):
+                        ddir = cfg.def_normal_data_dir
+                    
+                    elif(training_config["mode"] == 1):    
+                        ddir = cfg.def_advanced_data_dir
+                    
+                    print("\n")
+                    opt_m2 = input("Now select the output directory (string, or press intro for default (" + ddir + ")): ")
 
                     if(opt_m2 == ''):
-                        flist = cfg.os.listdir(cfg.def_data_dir)
-                        training_config.update({"input_dir" : cfg.def_data_dir})
+                        flist = cfg.os.listdir(ddir)
+                        training_config.update({"input_dir" : ddir})
 
                     elif(cfg.os.path.isdir(opt_m2)):
                         flist = cfg.os.listdir(opt_m2)
@@ -240,48 +247,113 @@ def menu():
                         print("Bad input. Try again.")
                         print("\n")
                         continue 
+                    
+                    tpl = cfg.aux.print_pr_options(flist)
 
-                    cfg.aux.print_options(flist)
                     print("\n")
-                    opt_m2 = input("Choose one or more, separated by space (integer 0-" + str(len(flist)-1) + ", or type all for all the files): ")
+                    opt_m2 = input("Choose one or more, separated by space (integer 0-" + str(len(tpl)-1) + "). You must select the pids that you want, or type all (example: 1 (24,36,2874) 2 (all)... ): ")
                     
-                    if(opt_m2 == "all"):
-                        target_files = flist
-                    
-                    else:
-                        fl = opt_m2.split(" ")
-                        fl = list(set([f for f in fl if f]))
+                    dat = opt_m2.split(" ")
+                    prs = dat[0::2]
+                    pids = dat[1::2]
 
-                        target_files=[]
-                        for f in fl:
-                            if(cfg.aux.check_numeric_input(f, 0, len(flist)-1)):
-                                target_files.append("'" + flist[int(f)] + "'")
+                    #381 (14) 310 (351386,259238) 379 (all) | 8 (all) 148 (global)
+                    target_files = []
 
+                    try:                    
+                        for p in range(0, len(prs)):
+                            if(cfg.aux.check_numeric_input(prs[p], 0, len(tpl)-1)):
+                                pidl = pids[p][1:len(pids[p])-1].split(",")
+
+                                prl = []
+                                for i in pidl:
+                                    if(i == "all"):
+                                        for j in tpl[int(prs[p])][1]:
+
+                                            if j == "all":
+                                                continue
+
+                                            name = tpl[int(prs[p])][0] + "_" + j + ".csv"
+                                            prl.append(name)
+
+                                    elif(i in tpl[int(prs[p])][1]):
+                                        name = tpl[int(prs[p])][0] + "_" + i + ".csv"
+                                        prl.append(name)
+
+                                    else:
+                                        raise ValueError('Pid not found.')
+                                target_files.append(prl)
+                                
                             else:
+                                raise ValueError('Input error.')   
+                    
+                    except:
+                        continue
+                                
+                    training_config.update({"input_data" : target_files})
+                    
+                    if(training_config["mode"] == 0):
+                        print("\n")
+                        opt_m2 = input("Now select what type(s) of data you want to use for training, one or more separated by space (CPU, RAM, RDISK, WDISK or all): ")
+                        
+                        allowed_nh = cfg.normal_csv_headers.split(",")
+                        if(opt_m2 == "all"):
+                            training_config.update({"datatype" :allowed_nh})
+                        else:
+                            dt = opt_m2.split(" ")
+                            status = True
+                            for d in dt:
+                                if d not in allowed_nh:
+                                    status = False
+                                    break
+                            if status == False:
                                 print("Bad input. Try again.")
                                 print("\n")
                                 continue
-                                
-                    training_config.update({"input_data" : target_files})
-                    print("\n")
-                    
-                    opt_m2 = input("Now select what type(s) of data you want to use for training, one or more separated by space (CPU, RAM, RDISK, WDISK or all): ")
-                    
-                    if(opt_m2 == "all"):
-                        training_config.update({"datatype" : ["CPU", "RAM", "RDISK", "WDISK"]})
-                    else:
-                        dt = opt_m2.split(" ")
+                            else: 
+                                training_config.update({"datatype" : dt})
+
+                    elif(training_config["mode"] == 1):
+                        print("\n")
+                        opt_m2 = input("Now select what type(s) of data you want to use for training, one or more separated by space and specify the exact metrics. (Example: CPU (MEAN,MEDIAN,MODE,VARIANCE) RAM(MEAN) RDISK (all)...): ")                                
+                        
+                        headers = opt_m2.split(" ")
+                        groups = headers[0::2]
+                        metrics = headers[1::2]
+
                         status = True
-                        for d in dt:
-                            if d not in ["CPU", "RAM", "RDISK", "WDISK"]:
+                        allowed_ah = cfg.advanced_csv_headers.split(",")
+                        allowed_nh = cfg.normal_csv_headers.split(",")
+                        selected_h = []
+
+                        for i in range(0, len(groups)):
+                            if groups[i] in allowed_nh:
+                                mets = metrics[i].replace("(", "").replace(")", "").split(",")
+                                
+                                for m in mets:
+                                    h = groups[i] + " (" + m + ")"
+
+                                    if m == "all":
+                                        for am in cfg.all_metrics:
+                                            selected_h.append(groups[i] + " (" + am + ")")
+
+                                    elif h in allowed_ah:
+                                        selected_h.append(h)
+                                    
+                                    else:
+                                        status = False
+                                
+                                #CPU (MEAN,MODE,MEDIAN,VARIANCE) RAM (all) WDISK (MEAN,VARIANCE)
+                            else:
                                 status = False
-                                break
+                        
                         if status == False:
                             print("Bad input. Try again.")
                             print("\n")
                             continue
-                        else: 
-                            training_config.update({"datatype" : dt})
+                            
+                        else:
+                            training_config.update({"datatype" : selected_h})
 
                     print("\n")
                     opt_m2 = input("Now select the output directory (press intro for default (" + str(cfg.def_output_model_dir) + training_config["alg"] + ")): ")
@@ -303,7 +375,7 @@ def menu():
                     while True:
                         opt_m2 = input("y/n: ")
                         if opt_m2 == "y":
-                            train_model_matlab(training_config)
+                            mt.train_model(training_config)
                             break
                         elif opt_m2 == "n":
                             break
@@ -324,7 +396,7 @@ def menu():
                     while True:
                         opt_m2 = input("y/n: ")
                         if opt_m2 == "y":
-                            train_model_matlab(training_config)
+                            mt.train_model_matlab(training_config)
                             break
                         elif opt_m2 == "n":
                             break
