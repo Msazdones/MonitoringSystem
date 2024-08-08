@@ -48,7 +48,7 @@ def menu():
                 continue
 
             launcher_config.update({"model" : cfg.models_directory + launcher_config["alg"] + "/" + flist[int(opt_m2)]})
-            launcher_config.update({"pr_target" : flist[int(opt_m2)].split("_")[1]})
+            launcher_config.update({"pr_target" : flist[int(opt_m2)].split("_")[2]})
 
             clients = cfg.aux.get_db_info(conn)
             print("Aviable clients: \n")

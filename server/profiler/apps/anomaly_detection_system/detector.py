@@ -1,35 +1,62 @@
 import config as cfg
 
-def parse_file_to_detection(config, conn):
+def parse_file_to_normal_detection(config, conn):
     host = config["clients"]
-    rawdata = reversed(list(conn[host].find({},{"_id": 0}).sort({"_id": -1}).limit(config["samples"])))
 
-    data = {}
-    for d in rawdata:
-        data.update(d)
-
-    dates = list(data.keys())
-
-    if(len(dates) == 0):
-        return {}
-
-    pid_lists = {}
-    prdata = []
-    for k in dates:
-        date = cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S")
+    dates = reversed(list(conn[host].aggregate([{"$sort": {"_id": 1}}, {"$group": {"_id": "$date"}}, {"$sort": {"_id": -1}}, {"$limit": config["samples"]}])))
+   
+    data = []
+    for d in dates:
+        date = cfg.datetime.strptime(str(d["_id"]), "%Y-%m-%d %H:%M:%S")
         timestamp = int(date.timestamp())
 
-        try:
-            if config["pr_target"] == "global":   
-                [prdata.append([timestamp, p["name"], p["pid"], float(p["CPU"]), float(p["RAM"]), float(p["RDISK"]), float(p["WDISK"])]) for p in data[k]]
-            else:  
-                [prdata.append([timestamp, p["name"], p["pid"], float(p["CPU"]), float(p["RAM"]), float(p["RDISK"]), float(p["WDISK"])]) for p in data[k] if p["name"] == config["pr_target"]]
-
-        except Exception as error:
-            print("No data structure found", error)      
-    
-    df = cfg.pd.DataFrame(prdata, columns=["Timestamp", "Prname", "PID", "CPU", "RAM", "RDISK", "WDISK"])
+        rawdata = conn[host].find({"date" : d["_id"]}, {"_id": 0}) 
+        
+        if config["pr_target"] == "global": 
+            [data.append([timestamp, jd["name"], jd["data"]["pid"], float(jd["data"]["CPU"]), float(jd["data"]["RAM"]), float(jd["data"]["RDISK"]), float(jd["data"]["WDISK"])]) for jd in rawdata]
+        else:
+            [data.append([timestamp, jd["name"], jd["data"]["pid"], float(jd["data"]["CPU"]), float(jd["data"]["RAM"]), float(jd["data"]["RDISK"]), float(jd["data"]["WDISK"])]) for jd in rawdata if jd["name"] == config["pr_target"]]
+        
+    df = cfg.pd.DataFrame(data, columns=["Timestamp", "Prname", "PID", "CPU", "RAM", "RDISK", "WDISK"])
    
+    return df
+
+def parse_file_to_advanced_detection(conn, config, intervals, interval):
+    host = config["clients"] 
+    date = list(conn[host].aggregate([{"$sort": {"_id": 1}}, {"$group": {"_id": "$date"}}, {"$sort": {"_id": -1}}, {"$limit": 1}]))[0]["_id"]
+        
+    instant = date[11:16].split(":")
+    instant = (int(instant[0])* 60) + int(instant[1])  
+    hl = intervals[cfg.np.argmax(intervals > instant)]
+    ll = intervals[cfg.np.where(intervals == hl)[0][0] - 1]
+
+    dates = []
+    for i in range(0, interval):         
+        dates.append(date[0:11] + str(((ll + i) // 60) % 24) + ":" + str((ll + i) % 60) + ":*.")
+
+    tts = hl - instant  
+    #cfg.time.sleep(tts * 60)
+
+    data = []
+    for d in dates:
+        rawdata = conn[host].find({"date": {"$regex": d}}, {"_id" : 0})
+
+        if config["pr_target"] == "global": 
+            for r in rawdata:
+                date = cfg.datetime.strptime(str(r["date"]), "%Y-%m-%d %H:%M:%S")
+                timestamp = int(date.timestamp())
+
+                data.append([timestamp, r["name"], r["data"]["pid"], float(r["data"]["CPU"]), float(r["data"]["RAM"]), float(r["data"]["RDISK"]), float(r["data"]["WDISK"])])
+        else:
+            for r in rawdata:
+                date = cfg.datetime.strptime(str(r["date"]), "%Y-%m-%d %H:%M:%S")
+                timestamp = int(date.timestamp())
+                
+                if r["name"] == config["pr_target"]:
+                    data.append([timestamp, r["name"], r["data"]["pid"], float(r["data"]["CPU"]), float(r["data"]["RAM"]), float(r["data"]["RDISK"]), float(r["data"]["WDISK"])])
+        
+    df = cfg.pd.DataFrame(data, columns=["Timestamp", "Prname", "PID", "CPU", "RAM", "RDISK", "WDISK"])
+    
     return df
 
 def log_detection_results(rdata, procinfo, alg, logfile):
@@ -86,7 +113,7 @@ def detection(config, conn):
 
 def normal_mode_detection(model, features, config, conn):
     while True:
-        df = parse_file_to_detection(config, conn)
+        df = parse_file_to_advanced_detection(config, conn)
 
         predictions = []
         if df.shape[0] != 0:
@@ -95,7 +122,7 @@ def normal_mode_detection(model, features, config, conn):
                 df = cfg.aux.get_encoded_instants(df)
                 df = df[features]
 
-                predictions.append(("global", model.predict(df), model.score_samples(df)))
+                predictions.append((config["pr_target"], model.predict(df), model.score_samples(df)))
                 
             else:
                 df = df.groupby("PID")
@@ -105,17 +132,17 @@ def normal_mode_detection(model, features, config, conn):
                     g = cfg.aux.get_encoded_instants(g)
                     g = g[features]
 
-                    predictions.append(("global", p, model.predict(df), model.score_samples(df)))
+                    predictions.append((config["pr_target"], p, model.predict(df), model.score_samples(df)))
 
         else:
             print("De momento no hay muestras.")
             cfg.time.sleep(config["period"])
 
 def advanced_mode_detection(model, features, config, conn):
+      
+    intervals = cfg.np.array([x for x in range(0, 1440, model.interval)])
+
     while True:
-        #[x for x in range(0, 1440, 30)]
-        date = list(list(conn[config["clients"]].find({},{"_id": 0}).sort({"_id": -1}).limit(1))[0].keys())[0]
-        #list(conn[config["clients"]].find({},{"_id": 0}).sort({"_id": -1}).limit(1))
-        pass
+        df = parse_file_to_normal_detection(conn, config, intervals,  model.interval)
 
 #{"alg", "model", "clients", "samples", "period", "pr_target"} 4683

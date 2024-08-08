@@ -25,7 +25,6 @@ def data_filter(data, sys_params):
 				result = round(100 * ((total_time / sys_params[0]) / prseconds), 2)
 				pid = segmented_file[0]
 				d.update({"pid" : segmented_file[0]})
-				d.update({"name" : name})
 				d.update({"status" : segmented_file[1]})
 				d.update({"CPU" : str(result)})
 				d.update({"TOTALTIME" : str(prseconds)})
@@ -68,9 +67,9 @@ def data_filter(data, sys_params):
 				d.update({"NTERMS" : str(len(pt))})
 				d.update({"NFILES" : str(len(of))})
 
-				rdata.append(d.copy())
+				rdata.append({"name": name, "date" : date, "data" : d.copy()})
 
-		return {date : rdata}
+		return rdata
 	
 	except:
 		return None
@@ -99,4 +98,5 @@ def data_management(q, msclient):
 			if pr_data == None:
 				pass
 			else:
-				col.insert_one(pr_data)
+				for r in pr_data:	
+					col.insert_one(r)

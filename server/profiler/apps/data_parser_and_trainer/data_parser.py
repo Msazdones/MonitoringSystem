@@ -2,8 +2,7 @@ import config as cfg
 
 def parse_file_for_training(config, db_conn):
     for host in config["clients"]:
-        jsondata = {}
-        dates = []
+        jsondata = []
         
         if(config["samples"] == "all"):
             rawdata = db_conn[host].find({},{"_id": 0})
@@ -13,36 +12,22 @@ def parse_file_for_training(config, db_conn):
         stepcnt = config["step"] - 1 #para quedarnos siempre con la primera muestra
         cnt = 0
         for d in rawdata:
-            cnt = cnt +1 
-            if(stepcnt == config["step"]-1): 
-                jsondata.update(d)
-                stepcnt = 0
-            else:
-                stepcnt = stepcnt + 1
+            jsondata.append(d)
 
-        dates = list(jsondata.keys())
-        if(len(dates) == 0):
+        if(len(jsondata) == 0):
             continue
         
-        cnt = 0#
-        tot = len(dates)#
-        print("Primera etapa")#
         data = []
         # revisar esto para optimizarlo
-        for k in dates:
-            cnt+=1#
-            print(cnt, "/", tot)#
 
-            date = cfg.datetime.strptime(str(k), "%Y-%m-%d %H:%M:%S")
+        for jd in jsondata:
+            date = cfg.datetime.strptime(str(jd["date"]), "%Y-%m-%d %H:%M:%S")
             timestamp = int(date.timestamp())
-            
-            try:
-                [data.append([timestamp, p["name"], p["pid"], float(p["CPU"]), float(p["RAM"]), float(p["RDISK"]), float(p["WDISK"])]) for p in jsondata[k]]
-                    
-            except Exception as error:
-                print("No data structure found", error)
+
+            data.append([timestamp, jd["name"], jd["data"]["pid"], float(jd["data"]["CPU"]), float(jd["data"]["RAM"]), float(jd["data"]["RDISK"]), float(jd["data"]["WDISK"])])
 
         df = cfg.pd.DataFrame(data, columns=["Timestamp", "Prname", "PID", "CPU", "RAM", "RDISK", "WDISK"])
+        df = df.sort_values(["Timestamp"])
 
         if(config["mode"] == 0):
             df = global_process(df)
@@ -57,20 +42,7 @@ def parse_file_for_training(config, db_conn):
             advanced_parse(df, config["output_dir"], config["interval"])
 
 def global_process(df):
-    #esta parte es para el análisis general del equipo
-    df = df.drop(["Prname", "PID"], axis=1)
-    df = df.groupby("Timestamp").sum()
-    df["Timestamp"] = df.index.values
-
-    df_sh = df.shift(1)
-        
-    df["RDISK"] = (df["RDISK"] - df_sh["RDISK"]) / (df["Timestamp"] - df_sh["Timestamp"])
-    df["WDISK"] = (df["WDISK"] - df_sh["WDISK"]) / (df["Timestamp"] - df_sh["Timestamp"])
-
-    df.iat[0, 2] = 0
-    df.iat[0, 3] = 0
-
-    df = df.drop(["Timestamp"], axis=1)
+    df = cfg.aux.process_R_and_W(df)
     return df
 
 def by_pr_process(df):
@@ -105,8 +77,11 @@ def normal_parse(df, outputdir):
             prdf["Instant"] = instants
             
             name = prdf.iat[0, 0].replace("/", "-").replace("(", "").replace(")", "").replace(" ", "-").replace("_", "-")
-            name = outputdir + name + "_" + prdf.iat[0, 1] + ".csv"
-            prdf.to_csv(name, index=True)
+            try:
+                name = outputdir + name + "_" + prdf.iat[0, 1] + ".csv"
+                prdf.to_csv(name, index=True)
+            except:
+                pass
 
     else:
         dates = df.index.values
@@ -170,14 +145,17 @@ def get_data_stats(df, interval, outputdir, mode):
             adf = cfg.pd.merge(adf, cfg.pd.DataFrame([d], columns=["Interval"]), left_index=True, right_index=True)
 
             ndf = cfg.pd.concat([ndf, adf], ignore_index = True) 
-        
+  
     if mode == 1:
         ndf["Prname"] = prname
         ndf["PID"] = pid
         
         name = prname.replace("/", "-").replace("(", "").replace(")", "").replace(" ", "-")
-        name = outputdir + name + "_" + pid + ".csv"
-        ndf.to_csv(name, index=False)
+        try:
+            name = outputdir + name + "_" + pid + ".csv"
+            ndf.to_csv(name, index=False)
+        except:
+            pass
     
     else:
         name = outputdir + 'global_global.csv'
