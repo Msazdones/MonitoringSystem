@@ -34,7 +34,7 @@ def reception():
 
 	# Crea un contexto TLS
 	context = cfg.ssl.SSLContext(cfg.ssl.PROTOCOL_TLS_SERVER)
-	context.load_cert_chain(certfile="./keys/rootCA.pem", keyfile="./keys/rootCA.key")
+	context.load_cert_chain(certfile="C:/Users/Miguel/Desktop/tfm2/code/MonitoringSystem/MonitoringSystem/server/data_collector/keys/rootCA.pem", keyfile="C:/Users/Miguel/Desktop/tfm2/code/MonitoringSystem/MonitoringSystem/server/data_collector/keys/rootCA.key")
 	# Envuelve el socket en un socket TLS
 	ssl_ssocket = context.wrap_socket(ssocket, server_side=True)
 

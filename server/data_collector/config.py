@@ -20,7 +20,7 @@ PASS_REQ = b"PASS"
 PASS_RES = "AUTH"
 DATA_SIZE = "SIZE"
 
-HOST = "192.168.50.152"  # Standard loopback interface address (localhost)
+HOST = "192.168.50.16"  # Standard loopback interface address (localhost)
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 MAX_CLIENTS = 5
 

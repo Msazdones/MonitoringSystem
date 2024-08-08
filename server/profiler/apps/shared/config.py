@@ -12,9 +12,12 @@ import socket
 import numpy as np
 import statistics as st
 import pandas as pd
-from sklearn import preprocessing, svm
+from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
+from sklearn import svm
+from sklearn.ensemble import IsolationForest
+#import tensorflow as tf
+import joblib
 
 import auxiliar_functions as aux
 
@@ -25,9 +28,9 @@ def_step = 1
 def_samples = 20
 def_output_model_dir = "./learning_and_detection/models/"
 def_output_model_svm_dir = def_output_model_dir + "svm/"
-normal_csv_headers = "DATETIME,CPU,RAM,RDISK,WDISK,TOTALTIME"
-advanced_csv_headers = "CPU (MEAN),CPU (MEDIAN),CPU (MODE),CPU (VARIANCE),RAM (MEAN),RAM (MEDIAN),RAM (MODE),RAM (VARIANCE),RDISK (MEAN),RDISK (MEDIAN),RDISK (MODE),RDISK (VARIANCE),WDISK (MEAN),WDISK (MEDIAN),WDISK (MODE),WDISK (VARIANCE)"
-all_metrics = ["MEAN", "MEDIAN", "MODE", "VARIANCE"]
+normal_csv_headers = "CPU,RAM,RDISK,WDISK"
+advanced_csv_headers = "CPU (mean),CPU (median),CPU (mode),CPU (variance),RAM (mean),RAM (median),RAM (mode),RAM (variance),RDISK (mean),RDISK (median),RDISK (mode),RDISK (variance),WDISK (mean),WDISK (median),WDISK (mode),WDISK (variance)"
+all_metrics = ["mean", "median", "mode", "variance"]
 
 path_to_training_binary = "./learning_and_detection/sourcecode/profilerstandaloneApplication/profiler"
 

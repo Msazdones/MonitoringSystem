@@ -37,8 +37,7 @@ def parse_file_for_training(config, db_conn):
             timestamp = int(date.timestamp())
             
             try:
-                for p in jsondata[k]:   
-                    data.append([timestamp, p["name"], p["pid"], float(p["CPU"]), float(p["RAM"]), float(p["RDISK"]), float(p["WDISK"])] )
+                [data.append([timestamp, p["name"], p["pid"], float(p["CPU"]), float(p["RAM"]), float(p["RDISK"]), float(p["WDISK"])]) for p in jsondata[k]]
                     
             except Exception as error:
                 print("No data structure found", error)

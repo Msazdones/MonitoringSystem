@@ -13,6 +13,8 @@ def data_filter(data, sys_params):
 			fcnt = i % 4
 			if(fcnt == 0):
 				pname = cfg.re.findall("\(.*\)", segmented_data[i])[0]
+				name = pname.replace("/", "-").replace("(", "").replace(")", "").replace(" ", "-").replace("_", "-")
+				
 				segmented_data[i] = segmented_data[i].replace(pname + " ", "")	
 				segmented_file = segmented_data[i].split(" ")
 
@@ -23,7 +25,7 @@ def data_filter(data, sys_params):
 				result = round(100 * ((total_time / sys_params[0]) / prseconds), 2)
 				pid = segmented_file[0]
 				d.update({"pid" : segmented_file[0]})
-				d.update({"name" : pname})
+				d.update({"name" : name})
 				d.update({"status" : segmented_file[1]})
 				d.update({"CPU" : str(result)})
 				d.update({"TOTALTIME" : str(prseconds)})

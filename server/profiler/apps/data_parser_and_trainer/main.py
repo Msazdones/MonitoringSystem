@@ -315,7 +315,7 @@ def menu():
 
                     elif(training_config["mode"] == 1):
                         print("\n")
-                        opt_m2 = input("Now select what type(s) of data you want to use for training, one or more separated by space and specify the exact metrics. (Example: CPU (MEAN,MEDIAN,MODE,VARIANCE) RAM(MEAN) RDISK (all)...): ")                                
+                        opt_m2 = input("Now select what type(s) of data you want to use for training, one or more separated by space and specify the exact metrics. (Example: CPU (mean,median,mode,variance) RAM (mean) RDISK (all)...): ")                                
                         
                         headers = opt_m2.split(" ")
                         groups = headers[0::2]

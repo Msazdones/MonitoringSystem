@@ -76,3 +76,32 @@ def print_options(l):
             col = 0
         else:
             col += 1 
+
+def process_R_and_W(df):
+    df = df.drop(["Prname", "PID"], axis=1)
+    df = df.groupby("Timestamp").sum()
+    df["Timestamp"] = df.index.values
+
+    df_sh = df.shift(1)
+
+    df["RDISK"] = (df["RDISK"] - df_sh["RDISK"]) / (df["Timestamp"] - df_sh["Timestamp"])
+    df["WDISK"] = (df["WDISK"] - df_sh["WDISK"]) / (df["Timestamp"] - df_sh["Timestamp"])
+
+    df.iat[0, 2] = 0
+    df.iat[0, 3] = 0
+
+    df = df.drop(["Timestamp"], axis=1)
+
+    return df
+
+def get_encoded_instants(df):
+    dates = df.index.values
+    
+    instants = []
+    for d in dates:
+        date = cfg.datetime.fromtimestamp(d)
+        instants.append((date.hour * 60) + date.minute)
+
+    df["Instant"] = instants
+
+    return df
