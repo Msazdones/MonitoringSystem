@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 
 	if(argc > 2)
 	{
-		printf("Wrong number of input arguments. Exiting.\n")
+		printf("Wrong number of input arguments. Exiting.\n");
 		return -1;
 	}
 	else if(argc == 2)

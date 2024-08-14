@@ -25,7 +25,7 @@
 
 #define SERVER_CERT "./keys/rootCA.pem"
 
-int initial_setup(SSL **);
+int initial_setup(SSL **, char[]);
 int probe_body(SSL **);
 int introduce_creds(SSL **);
 
