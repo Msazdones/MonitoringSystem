@@ -45,9 +45,9 @@ int probe_body(SSL **sslsock)
 	return 0;
 }
 
-int initial_setup(SSL **sslsock)
+int initial_setup(SSL **sslsock, char label[20])
 {
-	char data[100], aux[20];
+	char data[120], aux[20];
 
 	int hertz = sysconf(_SC_CLK_TCK);
 	struct sysinfo s_info;
@@ -64,6 +64,8 @@ int initial_setup(SSL **sslsock)
 	strncat(data, ",", 2);
 	sprintf(aux, "%ld", s_info.totalram);
 	strncat(data, aux, strlen(aux));
+	strncat(data, ",", 2);
+	strncat(data, label, strlen(label));
 	strncat(data, ")", 2);
 
 	printf("%s\n",data);
