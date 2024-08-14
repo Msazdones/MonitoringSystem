@@ -67,7 +67,7 @@ def data_filter(data, sys_params):
 				d.update({"NTERMS" : str(len(pt))})
 				d.update({"NFILES" : str(len(of))})
 
-				rdata.append({"name": name, "date" : date, "data" : d.copy()})
+				rdata.append({"name": name, "date" : date, "label" : sys_params[2], "data" : d.copy()})
 
 		return rdata
 	
@@ -85,15 +85,15 @@ def get_initial_setup(q):
 		if(len(q) > 0):
 			data = q.pop(0)
 			data = data[1:len(data)-1].split(",")
-			return float(data[0]), float(data[1]), float(data[2])/1024
+			return float(data[0]), float(data[1]), float(data[2])/1024, data[3] if data[3] != "" else "default_behaviour"
 
 def data_management(q, msclient):
 	col = connect_to_db(msclient)
-	uptime, hertz, totram = get_initial_setup(q)
+	uptime, hertz, totram, label = get_initial_setup(q)
 	while True:
 		if(len(q) > 0):
 			data = q.pop(0)
-			pr_data = data_filter(data, [hertz, totram])
+			pr_data = data_filter(data, [hertz, totram, label])
 			
 			if pr_data == None:
 				pass
