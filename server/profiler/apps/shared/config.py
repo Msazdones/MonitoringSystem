@@ -14,6 +14,8 @@ import statistics as st
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.neighbors import LocalOutlierFactor
 from sklearn import svm
 from sklearn.ensemble import IsolationForest
 #import tensorflow as tf
@@ -46,6 +48,7 @@ path_to_detector_binary = "./learning_and_detection/sourcecode/detect_anomaliess
 #log
 LOG_HEADERS = "State,Datetime,AnomalyScore,AnomalyState,PID,Algorithm,DataDatetime,CPU(%),RAM(%),RDISK(Bytes),WDISK(Bytes),TOTALTIME(s)\n"
 log_route = "./learning_and_detection/log/"
+logheaders = ["Status", "Score", "Threshold", "Prname", "PID", "strStatus"]
 
 #auxiliary
 DATABASE_DIR = "mongodb://127.0.0.1:27017/"

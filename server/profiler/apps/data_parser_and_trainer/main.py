@@ -70,6 +70,10 @@ def menu():
                     parse_config.update({"clients" : client_target})
 
                     print("\n")
+                    opt_m2 = input("Type the labels you want to use for parse the data (string, separated by blanc space): ")
+                    parse_config.update({"labels" : opt_m2.split(" ")})
+
+                    print("\n")
                     opt_m2 = input("Now select the amount of samples the you want to parse, starting from the last record (integer, type all for all samples, or press intro for default (" + str(cfg.def_samples) + ")): ")
 
                     if(opt_m2 == "all"):

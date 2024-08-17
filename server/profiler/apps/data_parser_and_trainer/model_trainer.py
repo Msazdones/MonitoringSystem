@@ -34,14 +34,14 @@ def train_model(config):
         df, interval = encode_categoricals(df)
 
         if config["alg"] == "svm":
-            model = train_svm(df, interval)
+            model, scaler = train_svm(df, interval)
         
         elif config["alg"] == "iforest":
-            model = train_iforest(df, interval)
+            model, scaler = train_iforest(df, interval)
 
         mode = "normal" if config["mode"] == 0 else "advanced"
 
-        cfg.joblib.dump(model, cfg.def_output_model_dir + config["alg"] + "/" + mode + "_" + config["alg"] + "_" + fn.split(".")[0] + ".pkl")
+        cfg.joblib.dump((model, scaler), cfg.def_output_model_dir + config["alg"] + "/" + mode + "_" + config["alg"] + "_" + fn.split(".")[0] + ".pkl")
 
         #model.save(cfg.models_directory + config["alg"] + fn.split(".")[0] + ".keras")
 
@@ -55,8 +55,6 @@ def encode_categoricals(df):
             cod.append((int(c.split(":")[0]) * 60) + int(c.split(":")[1]))
         
         cod = cfg.pd.Series(cod)
-
-        interval = cod.unique()[1] - cod.unique()[0]
 
         df["Instant"] = cod
 
@@ -81,23 +79,33 @@ def train_svm(data, interval):
     X_train = data.dropna()
     #X_train = cfg.preprocessing.StandardScaler().fit_transform(data)
     #Y_train = cfg.pd.Series([0 for x in range(0, data.shape[0])])
+    #X_train = X_train.drop(["Instant"], axis =1)
 
-    model = cfg.svm.OneClassSVM(verbose=True)
+    scaler = cfg.MinMaxScaler()
+    #scaler = cfg.StandardScaler()
+    scaler.fit(X_train)
+    X_train = cfg.pd.DataFrame(scaler.transform(X_train), columns=X_train.columns.values)
+
+    model = cfg.svm.OneClassSVM(verbose=True, nu=0.1)
     model.fit(X_train)
-    
+
     model.interval = interval
 
-    return model
+    return model, scaler
 
 def train_iforest(data, interval):
     X_train = data.dropna()
 
-    model = cfg.IsolationForest(random_state=0).fit(X_train)
+    scaler = cfg.MinMaxScaler()
+    scaler.fit(X_train)
+    X_train = cfg.pd.DataFrame(scaler.transform(X_train), columns=X_train.columns.values)
+
+    model = cfg.IsolationForest(random_state=2).fit(X_train)
     model.fit(X_train)
 
     model.interval = interval
 
-    return model
+    return model, scaler
 
 
 """def train_svm_tf(data):

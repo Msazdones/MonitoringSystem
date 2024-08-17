@@ -37,9 +37,10 @@ def menu():
                 continue  
 
             flist = cfg.os.listdir(cfg.models_directory + launcher_config["alg"])
-            cfg.aux.print_options(flist)
             print("\n")
-
+            cfg.aux.print_options(flist)
+            
+            print("\n")
             opt_m2 = input("Choose your machine learning model (just one) for detection, from directory '" + cfg.models_directory + launcher_config["alg"] + "/' (integer): ")
             
             if(not cfg.aux.check_numeric_input(opt_m2, 0, len(flist)-1)):
@@ -49,6 +50,19 @@ def menu():
 
             launcher_config.update({"model" : cfg.models_directory + launcher_config["alg"] + "/" + flist[int(opt_m2)]})
             launcher_config.update({"pr_target" : flist[int(opt_m2)].split("_")[2]})
+
+            mode = cfg.joblib.load(launcher_config["model"])[0].interval 
+
+            print("\n")
+            opt_m2 = input("Select the threshold (float): ")
+
+            if(not cfg.aux.check_float_input(opt_m2, 0, 100000)):
+                print("Bad input. Try again.")
+                print("\n")
+                continue 
+            
+            else:
+                launcher_config.update({"threshold" : float(opt_m2)})
 
             clients = cfg.aux.get_db_info(conn)
             print("Aviable clients: \n")
@@ -66,30 +80,31 @@ def menu():
             
             launcher_config.update({"clients" : clients[int(opt_m2)]})
 
-            print("\n")
-            opt_m2 = input("Now select the amount of samples that you want to use as observations each iteration, starting from the last record (integer): ")
-            
-            if(cfg.aux.check_numeric_input(opt_m2, 1, "-")):
-                launcher_config.update({"samples" : int(opt_m2)})
-
-            else:
-                print("Bad input. Try again.")
+            if mode == None:
                 print("\n")
-                continue  
+                opt_m2 = input("Now select the amount of samples that you want to use as observations each iteration, starting from the last record (integer): ")
+                
+                if(cfg.aux.check_numeric_input(opt_m2, 1, "-")):
+                    launcher_config.update({"samples" : int(opt_m2)})
 
-            print("\n")
-            opt_m2 = input("Now select the period of the detection process (float, or type none for no period): ")
-            
-            if(opt_m2 == "none"):
-                launcher_config.update({"period" : "none"})
-            
-            elif(cfg.aux.check_float_input(opt_m2, 1, "-")):
-                launcher_config.update({"period" : float(opt_m2)})
+                else:
+                    print("Bad input. Try again.")
+                    print("\n")
+                    continue  
 
-            else:
-                print("Bad input. Try again.")
                 print("\n")
-                continue  
+                opt_m2 = input("Now select the period of the detection process (float, or type none for no period): ")
+                
+                if(opt_m2 == "none"):
+                    launcher_config.update({"period" : "none"})
+                
+                elif(cfg.aux.check_float_input(opt_m2, 1, "-")):
+                    launcher_config.update({"period" : float(opt_m2)})
+
+                else:
+                    print("Bad input. Try again.")
+                    print("\n")
+                    continue  
 
             print("The current configuration is: ", launcher_config)
             print("Do you want to start the process now?")
@@ -98,6 +113,7 @@ def menu():
                 if opt_m2 == "y":
                     det.detection(launcher_config, conn)
                     break
+                
                 elif opt_m2 == "n":
                     break
 

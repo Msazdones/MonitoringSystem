@@ -52,12 +52,8 @@ def reception():
 			client_socket, addr = ssl_ssocket.accept()
 			client_list.append(client_socket)
 
-			shared_lists.append(manager.list())
-			last_sl = len(shared_lists) - 1
-
-			p = cfg.mp.Process(target=cfg.dms.data_management, args=(shared_lists[last_sl], addr[0]))
-			prs.append(p)
-			p.start()
+			shared_lists.append(None)
+			prs.append(None)
 
 			print(f"Connected by {addr}")
 			
@@ -76,6 +72,14 @@ def reception():
 						
 						print("Client authenticated.")
 						print("Starting data collection process for client", client.getpeername())
+						
+						ind = client_list.index(client)
+						shared_lists[ind] = manager.list()
+						
+						p = cfg.mp.Process(target=cfg.dms.data_management, args=(shared_lists[ind], addr[0]))
+						prs[ind] = p
+						p.start()
+
 						client.sendall(cfg.ACK_MSG)
 						initial_setup(shared_lists[client_list.index(client)], client)
 					
@@ -97,7 +101,7 @@ def reception():
 			except Exception as error:
 				cindex = client_list.index(client)
 
-				prs[cindex].terminate()
+				prs[cindex].terminate() if prs[cindex] != None else None
 				del prs[cindex]
 
 				client.close()
