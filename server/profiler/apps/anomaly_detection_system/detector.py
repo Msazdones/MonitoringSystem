@@ -55,7 +55,7 @@ def parse_file_for_advanced_detection(conn, config, intervals, interval):
     return df, ll + hl
 
 def log_detection_results(predictions, alg, logfile):
-    #lf = open(logfile, "a")
+    lf = open(logfile, "a")
     headers = cfg.logheaders.copy()
     for c in predictions[0][3].columns.values:
         headers.append(c)
@@ -63,19 +63,20 @@ def log_detection_results(predictions, alg, logfile):
     log_line = []
     for p in predictions:
         for i in range(0, len(p[0])):
-            l = [p[0][i], p[1][i], p[2], p[4], p[5], ("Negativo" if p[0][i]==1 else "Positivo")]
+            l = [str(p[0][i]), str(p[1][i]), str(p[2]), str(p[4]), str(p[5]), ("Negativo" if p[0][i]==1 else "Positivo")]
             for c in p[3].columns.values:
-                l.append(p[3].iloc[i][c])
+                l.append(str(p[3].iloc[i][c]))
             log_line.append(l)
-            #lf.write(log_line)
+            line = ",".join(l) + "\n"
+            lf.write(line)
 
     print(cfg.pd.DataFrame(log_line, columns=headers))
     print("----------------------------------------------------------------")
-    #lf.close()
+    lf.close()
 
 def create_log_file(pr_name):
     #filename = cfg.log_route + pr_name + "_" + cfg.datetime.today().strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
-    filename = cfg.log_route + pr_name + "_" + "test.csv"
+    filename = cfg.log_route + pr_name + "_" + "test_normal.csv"
     f = open(filename, "a")
     f.write(cfg.LOG_HEADERS)
     f.close()

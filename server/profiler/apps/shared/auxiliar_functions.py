@@ -42,8 +42,8 @@ def print_pr_options(l):
     for c in l: 
         try:
             p = c.split("_")
-            pname = p[0]
-            pid = p[1].replace(".csv", "")
+            pname = "_".join(p[0:len(p)-2]) + "_" + p[len(p)-2]
+            pid = p[-1].replace(".csv", "")
 
             if(pname not in pr.keys()):
                 pr.update({pname : [pid]})
@@ -79,7 +79,8 @@ def print_options(l):
 
 def process_R_and_W(df):
     df = df.drop(["Prname", "PID"], axis=1)
-    df = df.groupby("Timestamp").sum()
+    df = df.groupby(["Timestamp", "Label"], as_index=False).sum()
+    df = df.set_index(["Timestamp"])
     df["Timestamp"] = df.index.values
 
     df_sh = df.shift(1)
@@ -87,14 +88,17 @@ def process_R_and_W(df):
     df["RDISK"] = (df["RDISK"] - df_sh["RDISK"]) / (df["Timestamp"] - df_sh["Timestamp"])
     df["WDISK"] = (df["WDISK"] - df_sh["WDISK"]) / (df["Timestamp"] - df_sh["Timestamp"])
 
-    df.iat[0, 2] = 0
     df.iat[0, 3] = 0
+    df.iat[0, 4] = 0
 
     df = df.drop(["Timestamp"], axis=1)
 
     return df
 
 def get_data_stats(df, interval, mode):
+    labels = df["Label"]
+    df = df.drop(["Label"], axis=1)
+    
     if mode == 1:
         prname = df["Prname"].iloc[0]
         pid = df["PID"].iloc[0]
@@ -131,6 +135,8 @@ def get_data_stats(df, interval, mode):
             adf = cfg.pd.merge(adf, df.iloc[indices].var().to_frame().T, left_index=True, right_index=True) 
             adf = adf.rename(columns={"CPU": "CPU (variance)", "RAM": "RAM (variance)", "RDISK": "RDISK (variance)", "WDISK": "WDISK (variance)"})
             
+            adf = cfg.pd.merge(adf, cfg.pd.DataFrame([",".join(labels.iloc[indices].unique())], columns=["Label"]), left_index=True, right_index=True)
+
             d = str((intervals[i - 1] // 60) % 24).zfill(2) + ":" + str(intervals[i - 1] % 60).zfill(2) + "-" + str((intervals[i] // 60) % 24).zfill(2) + ":" + str(intervals[i] % 60).zfill(2)
             adf = cfg.pd.merge(adf, cfg.pd.DataFrame([d], columns=["Interval"]), left_index=True, right_index=True)
 

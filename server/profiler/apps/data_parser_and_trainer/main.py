@@ -206,13 +206,10 @@ def menu():
 
                 if(opt_m2 == "1"):
 
-                    opt_m2 = input("Choose the algorithm (svm or iforest): ")
+                    opt_m2 = input("Choose the algorithm (ocsvm, nn_anom, svm, nn_class): ")
                     
-                    if(opt_m2 == "svm"):
-                        training_config.update({"alg" : "svm"})
-                    
-                    elif(opt_m2 == "iforest"):
-                        training_config.update({"alg" : "iforest"})
+                    if(opt_m2 in cfg.allowed_algs):
+                        training_config.update({"alg" : opt_m2})
 
                     else:
                         print("Bad input. Try again.")

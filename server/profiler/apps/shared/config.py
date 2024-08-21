@@ -14,10 +14,14 @@ import statistics as st
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn import svm
-from sklearn.ensemble import IsolationForest
+
+from keras import layers
+from keras import models
+from keras import optimizers
+
 #import tensorflow as tf
 import joblib
 
@@ -36,6 +40,8 @@ all_metrics = ["mean", "median", "mode", "variance"]
 
 path_to_training_binary = "./learning_and_detection/sourcecode/profilerstandaloneApplication/profiler"
 
+allowed_algs = ["ocsvm", "nn_anom", "svm", "nn_class"]
+
 #detector configuration
 models_directory = "./learning_and_detection/models/"
 
@@ -46,7 +52,7 @@ data_output_dir = "/output/"
 path_to_detector_binary = "./learning_and_detection/sourcecode/detect_anomaliesstandaloneApplication/detect_anomalies"
 
 #log
-LOG_HEADERS = "State,Datetime,AnomalyScore,AnomalyState,PID,Algorithm,DataDatetime,CPU(%),RAM(%),RDISK(Bytes),WDISK(Bytes),TOTALTIME(s)\n"
+LOG_HEADERS = "Status,Score,Threshold,Prname,PID,strStatus\n"
 log_route = "./learning_and_detection/log/"
 logheaders = ["Status", "Score", "Threshold", "Prname", "PID", "strStatus"]
 

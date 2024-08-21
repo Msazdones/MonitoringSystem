@@ -26,9 +26,9 @@ def parse_file_for_training(config, db_conn):
             date = cfg.datetime.strptime(str(jd["date"]), "%Y-%m-%d %H:%M:%S")
             timestamp = int(date.timestamp())
 
-            data.append([timestamp, jd["name"], jd["data"]["pid"], float(jd["data"]["CPU"]), float(jd["data"]["RAM"]), float(jd["data"]["RDISK"]), float(jd["data"]["WDISK"])])
+            data.append([timestamp, jd["name"], jd["label"], jd["data"]["pid"], float(jd["data"]["CPU"]), float(jd["data"]["RAM"]), float(jd["data"]["RDISK"]), float(jd["data"]["WDISK"])])
 
-        df = cfg.pd.DataFrame(data, columns=["Timestamp", "Prname", "PID", "CPU", "RAM", "RDISK", "WDISK"])
+        df = cfg.pd.DataFrame(data, columns=["Timestamp", "Prname", "Label", "PID", "CPU", "RAM", "RDISK", "WDISK"])
         df = df.sort_values(["Timestamp"])
 
         if(config["mode"] == 0):
@@ -80,7 +80,7 @@ def normal_parse(df, config):
             
             name = prdf.iat[0, 0].replace("/", "-").replace("(", "").replace(")", "").replace(" ", "-").replace("_", "-")
             try:
-                name = config["output_dir"] + config["labels"][0] + "_" + name + "_" + prdf.iat[0, 1] + ".csv"
+                name = config["output_dir"] + config["labels"][0] + "_" + name + "_" + prdf.iat[0, 2] + ".csv"
                 prdf.to_csv(name, index=True)
             except:
                 pass

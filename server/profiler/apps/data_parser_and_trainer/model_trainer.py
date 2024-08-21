@@ -4,7 +4,8 @@ def train_model(config):
     tgfiles = []
 
     for prname in config["input_data"]:
-        csvfile = prname[0].split("_")[0] + "_all.csv"
+        e = prname[0].split("_")
+        csvfile = "_".join(e[0:len(e)-2]) + "_" + e[len(e)-2] + "_all.csv"
         
         if(len(prname) == 1):
             tgfiles.append(prname[0])
@@ -27,17 +28,24 @@ def train_model(config):
 
     h = config["datatype"]
     h.append("Instant") if config["mode"] == 0 else h.append("Interval")
+    h.append("Label")
     
     for fn in tgfiles:
         df = cfg.pd.read_csv(config["input_dir"] + fn)
         df = df[h]
         df, interval = encode_categoricals(df)
 
-        if config["alg"] == "svm":
-            model, scaler = train_svm(df, interval)
+        if config["alg"] == "ocsvm":
+            model, scaler = train_ocsvm(df, interval)
         
-        elif config["alg"] == "iforest":
-            model, scaler = train_iforest(df, interval)
+        elif config["alg"] == "nn_anom":
+            model, scaler = train_autoencoder(df, interval)
+
+        elif config["alg"] == "svm":
+            model, scaler = train_svm(df, interval)
+
+        elif config["alg"] == "nn_class":
+            model, scaler = train_neuralnetwork_classifier(df, interval)
 
         mode = "normal" if config["mode"] == 0 else "advanced"
 
@@ -75,14 +83,11 @@ def encode_categoricals(df):
 
     return df, interval
 
-def train_svm(data, interval):
+def train_ocsvm(data, interval):
     X_train = data.dropna()
-    #X_train = cfg.preprocessing.StandardScaler().fit_transform(data)
-    #Y_train = cfg.pd.Series([0 for x in range(0, data.shape[0])])
-    #X_train = X_train.drop(["Instant"], axis =1)
+    X_train = X_train.drop(["Label"], axis=1)
 
     scaler = cfg.MinMaxScaler()
-    #scaler = cfg.StandardScaler()
     scaler.fit(X_train)
     X_train = cfg.pd.DataFrame(scaler.transform(X_train), columns=X_train.columns.values)
 
@@ -93,43 +98,38 @@ def train_svm(data, interval):
 
     return model, scaler
 
-def train_iforest(data, interval):
+def train_svm(data, interval):
+    pass
+
+def train_autoencoder(data, interval):
     X_train = data.dropna()
+    X_train = X_train.drop(["Label"], axis=1)
 
     scaler = cfg.MinMaxScaler()
     scaler.fit(X_train)
-    X_train = cfg.pd.DataFrame(scaler.transform(X_train), columns=X_train.columns.values)
+    X_train = cfg.pd.DataFrame(scaler.transform(X_train), columns=X_train.columns.values) 
 
-    model = cfg.IsolationForest(random_state=2).fit(X_train)
-    model.fit(X_train)
+    imputdim = X_train.shape[1]
+    input_layer = cfg.layers.Input(shape=(imputdim,))
 
-    model.interval = interval
-
-    return model, scaler
-
-
-"""def train_svm_tf(data):
-    def hinge_loss(y_true, y_pred):    
-        return cfg.tf.maximum(0., 1- y_true*y_pred)
-
-    #X_train, X_val, Y_train, Y_val = cfg.train_test_split(data, cfg.pd.Series([0 for x in range(0, data.shape[0])]), test_size=0.2, random_state=42)
-    X_train = data
-    Y_train = cfg.pd.Series([0 for x in range(0, data.shape[0])])
-
-    X_train_tf = cfg.tf.convert_to_tensor(X_train)
+    encoder = cfg.layers.Dense(20, activation='tanh')(input_layer)
+    encoder = cfg.layers.Dense(14, activation='relu')(encoder)
     
-    normalizer = cfg.tf.keras.layers.Normalization(axis=-1)
-    normalizer.adapt(X_train_tf)
+    decoder = cfg.layers.Dense(20, activation='tanh')(encoder)
+    decoder = cfg.layers.Dense(imputdim, activation='relu')(decoder)
 
-    #model = cfg.tf.keras.Sequential([normalizer, cfg.tf.keras.layers.Dense(10, activation='relu'), cfg.tf.keras.layers.Dense(10, activation='relu'), cfg.tf.keras.layers.Dense(1)])
-    #model.compile(optimizer='adam', loss=cfg.tf.keras.losses.BinaryCrossentropy(from_logits=True), metrics=['accuracy'])
+    autoencoder = cfg.models.Model(inputs=input_layer, outputs=decoder)
 
-    model = cfg.tf.keras.Sequential([normalizer])
-    model.add(cfg.tf.keras.layers.Dense(1, activation='linear', kernel_regularizer=cfg.tf.keras.regularizers.l2()))
-    model.compile(optimizer='adam', loss=hinge_loss)
+    sgd = cfg.optimizers.SGD(learning_rate=0.01)
+    autoencoder.compile(optimizer='sgd', loss='mse')
 
-    model.fit(X_train_tf, Y_train, epochs=15, batch_size=2) #verbose=False
+    nits = 100
+    tam_lote = 32
+    autoencoder.fit(X_train, X_train, epochs=nits, batch_size=tam_lote, shuffle=True, verbose=1)
 
-    #Z = model.predict(X_val)
+    autoencoder.interval = interval
 
-    return model"""
+    return autoencoder, scaler
+
+def train_neuralnetwork_classifier(data, interval):
+    pass

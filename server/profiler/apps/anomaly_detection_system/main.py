@@ -49,7 +49,7 @@ def menu():
                 continue
 
             launcher_config.update({"model" : cfg.models_directory + launcher_config["alg"] + "/" + flist[int(opt_m2)]})
-            launcher_config.update({"pr_target" : flist[int(opt_m2)].split("_")[2]})
+            launcher_config.update({"pr_target" : flist[int(opt_m2)].split("_")[-2]})
 
             mode = cfg.joblib.load(launcher_config["model"])[0].interval 
 
