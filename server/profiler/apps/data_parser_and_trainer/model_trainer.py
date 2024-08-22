@@ -26,7 +26,7 @@ def train_model(config):
                             outfile.write(line)
                 tgfiles.append(csvfile)
 
-    h = config["datatype"]
+    h = config["datatype"].copy()
     h.append("Instant") if config["mode"] == 0 else h.append("Interval")
     h.append("Label")
     
@@ -36,20 +36,23 @@ def train_model(config):
         df, interval = encode_categoricals(df)
 
         if config["alg"] == "ocsvm":
-            model, scaler = train_ocsvm(df, interval)
+            model, scaler = train_ocsvm(df)
         
         elif config["alg"] == "nn_anom":
-            model, scaler = train_autoencoder(df, interval)
+            model, scaler = train_autoencoder(df)
 
         elif config["alg"] == "svm":
-            model, scaler = train_svm(df, interval)
+            model, scaler = train_svm(df)
 
         elif config["alg"] == "nn_class":
-            model, scaler = train_neuralnetwork_classifier(df, interval)
+            model, scaler = train_neuralnetwork_classifier(df)
 
         mode = "normal" if config["mode"] == 0 else "advanced"
+        
+        features = config["datatype"].copy()
+        features.append("Instant") if interval == None else features.append("Interval")
 
-        cfg.joblib.dump((model, scaler), cfg.def_output_model_dir + config["alg"] + "/" + mode + "_" + config["alg"] + "_" + fn.split(".")[0] + ".pkl")
+        cfg.joblib.dump((model, scaler, interval, features), cfg.def_output_model_dir + config["alg"] + "/" + mode + "_" + config["alg"] + "_" + fn.split(".")[0] + ".pkl")
 
         #model.save(cfg.models_directory + config["alg"] + fn.split(".")[0] + ".keras")
 
@@ -83,7 +86,7 @@ def encode_categoricals(df):
 
     return df, interval
 
-def train_ocsvm(data, interval):
+def train_ocsvm(data):
     X_train = data.dropna()
     X_train = X_train.drop(["Label"], axis=1)
 
@@ -94,14 +97,23 @@ def train_ocsvm(data, interval):
     model = cfg.svm.OneClassSVM(verbose=True, nu=0.1)
     model.fit(X_train)
 
-    model.interval = interval
-
     return model, scaler
 
-def train_svm(data, interval):
-    pass
+def train_svm(data):
+    Y_train = data["Label"]
+    X_train = data.dropna()
+    X_train = X_train.drop(["Label"], axis=1)
+    
+    scaler = cfg.MinMaxScaler() 
+    scaler.fit(X_train)
+    X_train = cfg.pd.DataFrame(scaler.transform(X_train), columns=X_train.columns.values)
 
-def train_autoencoder(data, interval):
+    model = cfg.svm.SVC()
+    model.fit(X_train, Y_train)
+
+    return model
+
+def train_autoencoder(data):
     X_train = data.dropna()
     X_train = X_train.drop(["Label"], axis=1)
 
@@ -127,9 +139,7 @@ def train_autoencoder(data, interval):
     tam_lote = 32
     autoencoder.fit(X_train, X_train, epochs=nits, batch_size=tam_lote, shuffle=True, verbose=1)
 
-    autoencoder.interval = interval
-
     return autoencoder, scaler
 
-def train_neuralnetwork_classifier(data, interval):
+def train_neuralnetwork_classifier(data):
     pass

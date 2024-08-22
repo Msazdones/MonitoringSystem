@@ -54,7 +54,7 @@ path_to_detector_binary = "./learning_and_detection/sourcecode/detect_anomaliess
 #log
 LOG_HEADERS = "Status,Score,Threshold,Prname,PID,strStatus\n"
 log_route = "./learning_and_detection/log/"
-logheaders = ["Status", "Score", "Threshold", "Prname", "PID", "strStatus"]
+logheaders = ["Status", "Score", "Threshold", "Prname", "PID", "strStatus", "Timestamp"]
 
 #auxiliary
 DATABASE_DIR = "mongodb://127.0.0.1:27017/"

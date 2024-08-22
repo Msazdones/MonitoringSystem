@@ -26,9 +26,9 @@ def parse_file_for_training(config, db_conn):
             date = cfg.datetime.strptime(str(jd["date"]), "%Y-%m-%d %H:%M:%S")
             timestamp = int(date.timestamp())
 
-            data.append([timestamp, jd["name"], jd["label"], jd["data"]["pid"], float(jd["data"]["CPU"]), float(jd["data"]["RAM"]), float(jd["data"]["RDISK"]), float(jd["data"]["WDISK"])])
+            data.append([timestamp, jd["label"], jd["name"], jd["data"]["pid"], float(jd["data"]["CPU"]), float(jd["data"]["RAM"]), float(jd["data"]["RDISK"]), float(jd["data"]["WDISK"])])
 
-        df = cfg.pd.DataFrame(data, columns=["Timestamp", "Prname", "Label", "PID", "CPU", "RAM", "RDISK", "WDISK"])
+        df = cfg.pd.DataFrame(data, columns=["Timestamp", "Label", "Prname", "PID", "CPU", "RAM", "RDISK", "WDISK"])
         df = df.sort_values(["Timestamp"])
 
         if(config["mode"] == 0):

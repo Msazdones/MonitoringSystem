@@ -23,19 +23,15 @@ def menu():
 
         if(opt_m1 == "1"):
 
-            opt_m2 = input("Choose the algorithm (svm or iforest): ")
-            
-            if(opt_m2 == "svm"):
-                launcher_config.update({"alg" : "svm"})
-            
-            elif(opt_m2 == "iforest"):
-                launcher_config.update({"alg" : "iforest"})
+            opt_m2 = input("Choose the algorithm (ocsvm, nn_anom, svm, nn_class): ")
+                    
+            if(opt_m2 in cfg.allowed_algs):
+                launcher_config.update({"alg" : opt_m2})
 
             else:
                 print("Bad input. Try again.")
                 print("\n")
-                continue  
-
+                continue 
             flist = cfg.os.listdir(cfg.models_directory + launcher_config["alg"])
             print("\n")
             cfg.aux.print_options(flist)
@@ -51,7 +47,7 @@ def menu():
             launcher_config.update({"model" : cfg.models_directory + launcher_config["alg"] + "/" + flist[int(opt_m2)]})
             launcher_config.update({"pr_target" : flist[int(opt_m2)].split("_")[-2]})
 
-            mode = cfg.joblib.load(launcher_config["model"])[0].interval 
+            mode = cfg.joblib.load(launcher_config["model"])[2]
 
             print("\n")
             opt_m2 = input("Select the threshold (float): ")
