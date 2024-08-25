@@ -111,7 +111,7 @@ def train_svm(data):
     model = cfg.svm.SVC()
     model.fit(X_train, Y_train)
 
-    return model
+    return model, scaler
 
 def train_autoencoder(data):
     X_train = data.dropna()
@@ -142,4 +142,25 @@ def train_autoencoder(data):
     return autoencoder, scaler
 
 def train_neuralnetwork_classifier(data):
-    pass
+    Y_train = data["Label"]
+    X_train = data.dropna()
+    X_train = X_train.drop(["Label"], axis=1)
+
+    scaler = cfg.MinMaxScaler() 
+    scaler.fit(X_train)
+    X_train = cfg.pd.DataFrame(scaler.transform(X_train), columns=X_train.columns.values)
+
+    le = cfg.LabelEncoder().fit(Y_train)
+    Y_train = le.transform(Y_train)
+    Y_train = cfg.to_categorical(Y_train)
+
+    model = cfg.Sequential()
+
+    model.add(cfg.layers.Dense(64, activation='relu', input_dim=X_train.shape[1]))
+    model.add(cfg.layers.Dense(32, activation='relu'))
+    model.add(cfg.layers.Dense(2, activation='softmax'))
+
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.fit(X_train, Y_train, epochs=10, batch_size=32)
+
+    return model, scaler

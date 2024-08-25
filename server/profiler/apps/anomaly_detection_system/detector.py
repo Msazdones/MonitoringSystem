@@ -230,4 +230,10 @@ def keras_nn_anom_detection(model, scaler, df, config, p):
     return prediction
 
 def keras_nn_class_detection(model, scaler, df, config, p):
-    pass
+    dfp = cfg.pd.DataFrame(scaler.transform(df), columns=df.columns.values) 
+    
+    preds = model.predict(dfp)
+
+    prediction = ([cfg.np.argmax(p) for p in preds], [cfg.np.amax(p) for p in preds], config["threshold"], df, config["pr_target"], p)
+    
+    return prediction

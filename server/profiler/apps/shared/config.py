@@ -14,13 +14,12 @@ import statistics as st
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder, OneHotEncoder
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn import svm
 
-from keras import layers
-from keras import models
-from keras import optimizers
+from keras import layers, models, optimizers, Sequential
+from keras.utils import to_categorical
 
 #import tensorflow as tf
 import joblib
