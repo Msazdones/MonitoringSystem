@@ -64,7 +64,7 @@ def log_detection_results(predictions, alg, logfile):
     for p in predictions:
         for i in range(0, len(p[0])):
             l = [str(p[0][i]), str(p[1][i]), str(p[2]), str(p[4]), str(p[5]), ("Negativo" if p[0][i]==1 else "Positivo")]
-            l.append(p[3].index[i])
+            l.append(str(p[3].index[i]))
             for c in p[3].columns.values:
                 l.append(str(p[3].iloc[i][c]))
             log_line.append(l)
@@ -76,8 +76,7 @@ def log_detection_results(predictions, alg, logfile):
     lf.close()
 
 def create_log_file(pr_name):
-    #filename = cfg.log_route + pr_name + "_" + cfg.datetime.today().strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
-    filename = cfg.log_route + pr_name + "_" + "test_normal.csv"
+    filename = cfg.log_route + pr_name + "_" + cfg.datetime.today().strftime('%Y-%m-%d_%H:%M:%S') + ".csv"
     f = open(filename, "a")
     f.write(cfg.LOG_HEADERS)
     f.close()
@@ -116,9 +115,15 @@ def normal_mode_detection(model, scaler, features, config, conn, logfile):
 
                 if config["alg"] == "ocsvm":
                     prediction = sklearn_anom_detection(model, scaler, df, config,  "global")
+
+                elif config["alg"] == "svm":
+                    prediction = sklearn_class_detection(model, scaler, df, config,  "global")
                 
                 elif config["alg"] == "nn_anom":
                     prediction = keras_nn_anom_detection(model, scaler, df, config, "global")
+
+                elif config["alg"] == "nn_class":
+                    prediction = keras_nn_class_detection(model, scaler, df, config, "global")
                 
                 predictions.append(prediction)
                 log_detection_results(predictions, config["alg"], logfile)
@@ -133,8 +138,15 @@ def normal_mode_detection(model, scaler, features, config, conn, logfile):
 
                     if config["alg"] == "ocsvm":
                         prediction = sklearn_anom_detection(model, scaler, g, config, p)
+
+                    elif config["alg"] == "svm":
+                        prediction = sklearn_class_detection(model, scaler, df, config, p)
+                    
                     elif config["alg"] == "nn_anom":
                         prediction = keras_nn_anom_detection(model, scaler, df, config, p)
+                    
+                    elif config["alg"] == "nn_class":
+                        prediction = keras_nn_class_detection(model, scaler, df, config, p)
 
                     predictions.append(prediction)
                     log_detection_results(predictions, config["alg"], logfile)
